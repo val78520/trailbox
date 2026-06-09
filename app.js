@@ -142,15 +142,36 @@ document.getElementById('o-vma').addEventListener('input', calcVO2);
 /* ---- 07 · VMA (demi-Cooper) + allures d'entraînement -------------------- */
 const VMA_ZONES = [60, 80, 90, 100, 105];
 
+/* Formate un temps total en h:mm:ss (au-delà d'une heure) ou m:ss. */
+function fmtTime(sec) {
+  sec = Math.round(sec);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec - h * 3600) / 60);
+  const s = sec - h * 3600 - m * 60;
+  if (h > 0) {
+    return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+  return m + ':' + String(s).padStart(2, '0');
+}
+
 function calcVMATraining() {
   const vma = num('vt-vma');
+  const dist = num('vt-dist');  // distance de la séance en mètres
   VMA_ZONES.forEach(p => {
-    const el = document.getElementById('vt-' + p);
-    if (!vma || vma <= 0) { el.textContent = '—'; return; }
-    el.textContent = fmtPace(3600 / (vma * p / 100)) + ' /km';
+    const time = document.getElementById('vt-' + p);
+    const sub = document.getElementById('vt-' + p + '-p');
+    if (!vma || vma <= 0 || !dist || dist <= 0) {
+      time.textContent = '—'; sub.textContent = '';
+      return;
+    }
+    const speed = vma * p / 100;          // km/h à cette intensité
+    const secPerKm = 3600 / speed;        // allure en s/km
+    time.textContent = fmtTime(secPerKm * dist / 1000);  // temps sur la distance
+    sub.textContent = fmtPace(secPerKm) + ' /km';
   });
 }
 document.getElementById('vt-vma').addEventListener('input', calcVMATraining);
+document.getElementById('vt-dist').addEventListener('input', calcVMATraining);
 
 function calcVMA() {
   const dist = num('v-dist');
@@ -203,7 +224,7 @@ function loadFavorites() {
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) return [];
     // Filtre les ids inconnus (ex. 'riegel' suite à la fusion 04+05).
-    const valid = new Set(['pace', 'slope', 'gap', 'time', 'vo2', 'vma']);
+    const valid = new Set(['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures']);
     return arr.filter(x => typeof x === 'string' && valid.has(x));
   } catch { return []; }
 }
@@ -253,7 +274,7 @@ function renderFavorites() {
 
   /* Renvoie les cartes non favorites dans la grille principale,
      en restaurant l'ordre d'origine (via data-tool) */
-  const originalOrder = ['pace', 'slope', 'gap', 'time', 'vo2', 'vma'];
+  const originalOrder = ['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures'];
   originalOrder
     .filter(id => !favs.includes(id))
     .forEach(id => {
@@ -281,30 +302,75 @@ function toggleFavorite(id) {
   else { favs.splice(idx, 1); added = false; }
   saveFavorites(favs);
   renderFavorites();
-  showSnackbar(added);
+  if (added) {
+    showSnackbar('Outil favorisé', "Il t'attend désormais en haut de page.");
+  } else {
+    showSnackbar('Outil supprimé des favoris', 'Il a retrouvé sa place dans la boîte à outils.');
+  }
 }
 
-/* ---- Snackbar ----------------------------------------------------------- */
+/* ---- Snackbar (réutilisable) -------------------------------------------- */
 const snackbar = document.getElementById('snackbar');
 const snackbarTitle = document.getElementById('snackbar-title');
 const snackbarDesc = document.getElementById('snackbar-desc');
 let snackbarTimer = null;
 
-function showSnackbar(added) {
-  if (added) {
-    snackbarTitle.textContent = 'Outil favorisé';
-    snackbarDesc.textContent = "Il t'attend désormais en haut de page.";
-  } else {
-    snackbarTitle.textContent = 'Outil supprimé des favoris';
-    snackbarDesc.textContent = 'Il a retrouvé sa place dans la boîte à outils.';
-  }
+function showSnackbar(title, desc, duration = 4000) {
+  snackbarTitle.textContent = title;
+  snackbarDesc.textContent = desc;
   snackbar.classList.add('is-visible');
   snackbar.setAttribute('aria-hidden', 'false');
   if (snackbarTimer) clearTimeout(snackbarTimer);
   snackbarTimer = setTimeout(() => {
     snackbar.classList.remove('is-visible');
     snackbar.setAttribute('aria-hidden', 'true');
-  }, 4000);
+  }, duration);
 }
+
+/* ============================================================================
+   VMA SAUVEGARDÉE — persistance localStorage de la VMA du test demi-Cooper
+   ========================================================================== */
+const VMA_KEY = 'trailbox.vma.v1';
+
+function loadSavedVMA() {
+  try {
+    const raw = localStorage.getItem(VMA_KEY);
+    if (!raw) return null;
+    const v = parseFloat(raw);
+    return (isFinite(v) && v > 0) ? v : null;
+  } catch { return null; }
+}
+
+function updateSavedVMAHint() {
+  const hint = document.getElementById('vt-vma-saved');
+  const saved = loadSavedVMA();
+  hint.textContent = saved
+    ? 'Dernière VMA sauvegardée : ' + fr(saved) + ' km/h'
+    : "Aucune VMA sauvegardée pour l'instant.";
+}
+
+function saveCurrentVMA() {
+  const dist = num('v-dist');
+  if (!dist || dist <= 0) return;
+  const vma = dist / 100;
+  try { localStorage.setItem(VMA_KEY, String(vma)); } catch {}
+  updateSavedVMAHint();
+  showSnackbar(
+    'VMA sauvegardée',
+    'Elle sera présente dans les différents champs lors de ta prochaine visite',
+    5000
+  );
+}
+document.getElementById('vma-save').addEventListener('click', saveCurrentVMA);
+
+/* Au chargement : pré-remplit la VMA utilisée avec la dernière sauvegarde */
+(function restoreSavedVMA() {
+  const saved = loadSavedVMA();
+  if (saved) {
+    document.getElementById('vt-vma').value = saved;
+    calcVMATraining();
+  }
+  updateSavedVMAHint();
+})();
 
 renderFavorites();

@@ -395,6 +395,29 @@ body {
   line-height: var(--ds-sys-type-line-normal);
 }
 
+/* Bouton « sauvegarder pour la prochaine fois » dans l'encart Ta VMA */
+.vma-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-6);
+  align-self: flex-start;
+  margin-top: var(--ds-sys-spacing-8);
+  padding: var(--ds-sys-spacing-6) var(--ds-sys-spacing-11);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--ds-sys-type-size-label-sm);
+  font-weight: var(--ds-ref-weight-semibold);
+  letter-spacing: var(--ds-sys-type-tracking-snug);
+  color: var(--ds-sys-color-primary);
+  background: var(--ds-sys-color-surface);
+  border-radius: var(--ds-sys-shape-corner-full);
+  transition: transform var(--ds-sys-motion-duration-fast) var(--ds-sys-motion-easing-standard),
+              background var(--ds-sys-motion-duration-medium) var(--ds-sys-motion-easing-standard);
+}
+.vma-save-btn:hover { background: var(--ds-sys-color-surface-variant); transform: translateY(-1px); }
+.vma-save-btn svg { flex-shrink: 0; width: 14px; height: 14px; }
+
 .vma-sub-head h4 {
   font-size: var(--ds-sys-type-size-title-md);
   font-weight: var(--ds-ref-weight-bold);
@@ -432,13 +455,25 @@ body {
   border-radius: var(--ds-sys-shape-corner-full);
 }
 .pace-val {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  min-width: 7ch;
+}
+.pace-time {
   font-size: var(--ds-sys-type-size-title-md);
   font-weight: var(--ds-ref-weight-extrabold);
   letter-spacing: var(--ds-sys-type-tracking-tight);
   color: var(--ds-sys-color-primary);
   font-variant-numeric: tabular-nums;
-  text-align: right;
-  min-width: 7ch;
+  line-height: 1.1;
+}
+.pace-sub {
+  font-size: var(--ds-sys-type-size-label-xs);
+  font-weight: var(--ds-ref-weight-semibold);
+  color: var(--ds-sys-color-on-surface-variant);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- CONCEPT ------------------------------------------------------------ */

@@ -290,76 +290,89 @@
         </div>
       </article>
 
-      <!-- CARTE 7 — VMA + ALLURES D'ENTRAÎNEMENT (pleine largeur) -->
-      <article class="card card--wide" data-tool="vma">
+      <!-- CARTE 7 — TEST VMA (demi-Cooper) -->
+      <article class="card" data-tool="vma">
         <div class="card-head">
           <span class="card-num">VMA</span>
-          <h3>VMA &amp; allures d'entraînement</h3>
-          <p class="card-joke">Le chiffre qui décide de tout ton plan — et ce qu'il dit de tes séances.</p>
+          <h3>Test VMA — demi-Cooper</h3>
+          <p class="card-joke">Le chiffre qui décide de tout ton plan d'entraînement.</p>
         </div>
 
-        <div class="vma-body">
-          <!-- Colonne A : test demi-Cooper -->
-          <div class="vma-col">
-            <div class="fields">
-              <div class="field">
-                <label for="v-dist">Distance en 6 min — demi-Cooper (m)</label>
-                <input class="input" type="number" id="v-dist" value="1650" min="0" step="10" inputmode="numeric">
-              </div>
-            </div>
-            <div class="result">
-              <span class="result-label">Ta VMA</span>
-              <span class="result-value" id="v-out">16,5 km/h</span>
-              <span class="result-sub" id="v-pace">soit 3:38 /km</span>
-            </div>
-            <p class="vma-hint">Test demi-Cooper : cours le plus loin possible en 6&nbsp;min, à plat et bien échauffé. <code>VMA = distance (m) ÷ 100</code>.</p>
+        <div class="fields">
+          <div class="field">
+            <label for="v-dist">Distance en 6 min — demi-Cooper (m)</label>
+            <input class="input" type="number" id="v-dist" value="1650" min="0" step="10" inputmode="numeric">
           </div>
+        </div>
 
-          <!-- Colonne B : allures d'entraînement -->
-          <div class="vma-col">
-            <div class="vma-sub-head">
-              <h4>Allures d'entraînement</h4>
-              <p>Calées sur ta VMA. Modifie-la directement si tu la connais déjà.</p>
-            </div>
-            <div class="fields">
-              <div class="field">
-                <label for="vt-vma">VMA utilisée (km/h)</label>
-                <input class="input" type="number" id="vt-vma" value="16.5" min="0" step="0.1" inputmode="decimal">
-              </div>
-            </div>
-            <div class="paces">
-              <div class="pace-row" data-zone="endurance">
-                <span class="pace-zone">Endurance</span>
-                <span class="pace-pct">60&nbsp;%</span>
-                <span class="pace-val" id="vt-60">6:04 /km</span>
-              </div>
-              <div class="pace-row" data-zone="seuil">
-                <span class="pace-zone">Seuil</span>
-                <span class="pace-pct">80&nbsp;%</span>
-                <span class="pace-val" id="vt-80">4:33 /km</span>
-              </div>
-              <div class="pace-row" data-zone="seuil">
-                <span class="pace-zone">Seuil</span>
-                <span class="pace-pct">90&nbsp;%</span>
-                <span class="pace-val" id="vt-90">4:02 /km</span>
-              </div>
-              <div class="pace-row" data-zone="fractionne">
-                <span class="pace-zone">Fractionné</span>
-                <span class="pace-pct">100&nbsp;%</span>
-                <span class="pace-val" id="vt-100">3:38 /km</span>
-              </div>
-              <div class="pace-row" data-zone="fractionne">
-                <span class="pace-zone">Fractionné</span>
-                <span class="pace-pct">105&nbsp;%</span>
-                <span class="pace-val" id="vt-105">3:28 /km</span>
-              </div>
-            </div>
+        <div class="result">
+          <span class="result-label">Ta VMA</span>
+          <span class="result-value" id="v-out">16,5 km/h</span>
+          <span class="result-sub" id="v-pace">soit 3:38 /km</span>
+          <button type="button" class="vma-save-btn" id="vma-save">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Sauvegarder pour la prochaine fois
+          </button>
+        </div>
+
+        <p class="vma-hint">Test demi-Cooper : cours le plus loin possible en 6&nbsp;min, à plat et bien échauffé. <code>VMA = distance (m) ÷ 100</code>.</p>
+      </article>
+
+      <!-- CARTE 8 — ALLURES D'ENTRAÎNEMENT -->
+      <article class="card" data-tool="allures">
+        <div class="card-head">
+          <span class="card-num">Allures</span>
+          <h3>Allures d'entraînement</h3>
+          <p class="card-joke">Temps à réaliser sur ta distance de séance, calés sur ta VMA.</p>
+        </div>
+
+        <div class="fields">
+          <div class="field">
+            <label for="vt-vma">VMA utilisée (km/h)</label>
+            <input class="input" type="number" id="vt-vma" value="16.5" min="0" step="0.1" inputmode="decimal">
+            <span class="field-hint" id="vt-vma-saved">Aucune VMA sauvegardée pour l'instant.</span>
+          </div>
+          <div class="field">
+            <label for="vt-dist">Distance de la séance (m)</label>
+            <input class="input" type="number" id="vt-dist" value="1000" min="0" step="50" inputmode="numeric">
+          </div>
+        </div>
+
+        <div class="paces">
+          <div class="pace-row" data-zone="endurance">
+            <span class="pace-zone">Endurance</span>
+            <span class="pace-pct">60&nbsp;%</span>
+            <span class="pace-val"><span class="pace-time" id="vt-60">10:06</span><span class="pace-sub" id="vt-60-p">6:04 /km</span></span>
+          </div>
+          <div class="pace-row" data-zone="seuil">
+            <span class="pace-zone">Seuil</span>
+            <span class="pace-pct">80&nbsp;%</span>
+            <span class="pace-val"><span class="pace-time" id="vt-80">4:33</span><span class="pace-sub" id="vt-80-p">4:33 /km</span></span>
+          </div>
+          <div class="pace-row" data-zone="seuil">
+            <span class="pace-zone">Seuil</span>
+            <span class="pace-pct">90&nbsp;%</span>
+            <span class="pace-val"><span class="pace-time" id="vt-90">4:02</span><span class="pace-sub" id="vt-90-p">4:02 /km</span></span>
+          </div>
+          <div class="pace-row" data-zone="fractionne">
+            <span class="pace-zone">Fractionné</span>
+            <span class="pace-pct">100&nbsp;%</span>
+            <span class="pace-val"><span class="pace-time" id="vt-100">3:38</span><span class="pace-sub" id="vt-100-p">3:38 /km</span></span>
+          </div>
+          <div class="pace-row" data-zone="fractionne">
+            <span class="pace-zone">Fractionné</span>
+            <span class="pace-pct">105&nbsp;%</span>
+            <span class="pace-val"><span class="pace-time" id="vt-105">3:28</span><span class="pace-sub" id="vt-105-p">3:28 /km</span></span>
           </div>
         </div>
 
         <div class="note">
           <span class="note-tag">La théorie</span>
-          <p>À chaque zone son intensité : <code>allure = 60 ÷ (VMA × %)</code>. L'<strong>endurance fondamentale</strong> (≈ 60&nbsp;%) construit le foncier, le <strong>seuil</strong> (80–90&nbsp;%) repousse le mur lactique, le <strong>fractionné</strong> (100–105&nbsp;%) travaille la VMA elle-même. Chaînage direct avec l'outil VO2max ci-dessus.</p>
+          <p>À chaque zone son intensité : <code>allure = 60 ÷ (VMA × %)</code>. L'<strong>endurance fondamentale</strong> (≈ 60&nbsp;%) construit le foncier, le <strong>seuil</strong> (80–90&nbsp;%) repousse le mur lactique, le <strong>fractionné</strong> (100–105&nbsp;%) travaille la VMA elle-même.</p>
         </div>
       </article>
 
