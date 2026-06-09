@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trail Box — La boîte à outils du traileur</title>
+<meta name="description" content="Allure, pente, temps de course, VMA, VO2max. Tu rentres tes chiffres, on te sort le résultat. Pas de pub, pas d'inscription.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Design system (tokens) PUIS styles (composants). L'ordre compte. -->
+<link rel="stylesheet" href="design_system.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#">
+      <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true">
+        <rect width="40" height="40" rx="11" fill="#002FA7"/>
+        <path d="M6.5 29.5 L15 15.5 L20.5 22.5 L26 12 L33.5 29.5 Z" fill="#fff"/>
+        <circle cx="26" cy="12" r="2.1" fill="#002FA7"/>
+      </svg>
+      Trail&nbsp;<span class="b">Box</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#outils">Les outils</a>
+      <a href="#concept">Le concept</a>
+      <a href="#concept">Le coureur</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn--ghost" href="#concept">Le concept</a>
+      <a class="btn btn--primary" href="#outils">Ouvrir la boîte</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow reveal">Dans la boîte, tout pour le trail</span>
+    <h1 class="reveal d1">Arrête de calculer ton allure sur un coin de nappe.</h1>
+    <p class="hero-sub reveal d2">Allure, pente, temps de course. Tu rentres tes chiffres, on te sort le résultat. Pas de pub, pas de tuto de 12 minutes, pas de tableur Excel de 2009.</p>
+    <div class="hero-actions reveal d3">
+      <a class="btn btn--primary btn--lg" href="#outils">Ouvrir la boîte</a>
+      <a class="btn btn--ghost btn--lg" href="#concept">Comment ça marche</a>
+      <span class="hero-note">6 outils · 0 inscription</span>
+    </div>
+  </div>
+
+  <div class="wrap profile reveal d4" aria-hidden="true">
+    <svg viewBox="0 0 1200 200" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="epFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#002FA7" stop-opacity=".16"/>
+          <stop offset="1" stop-color="#002FA7" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="M0,150 L120,118 L220,160 L340,86 L460,128 L560,58 L680,104 L800,38 L900,92 L1020,66 L1120,128 L1200,108 L1200,200 L0,200 Z" fill="url(#epFill)"/>
+      <path class="ep-line" d="M0,150 L120,118 L220,160 L340,86 L460,128 L560,58 L680,104 L800,38 L900,92 L1020,66 L1120,128 L1200,108"/>
+      <circle cx="800" cy="38" r="5" fill="#002FA7"/>
+    </svg>
+    <span class="cap cap--start">0 km</span>
+    <span class="cap cap--peak" style="left:66.6%">Sommet · D+ 1240 m</span>
+    <span class="cap cap--end">42 km</span>
+  </div>
+</section>
+
+<!-- OUTILS -->
+<section class="tools" id="outils">
+  <div class="wrap">
+
+    <!-- MES FAVORIS -->
+    <div class="favorites" id="favoris">
+      <div class="section-head favorites-head">
+        <span class="eyebrow">Ta sélection</span>
+        <h2>Mes favoris</h2>
+        <p>Tes outils chouchous, épinglés ici pour ne plus scroller lors de ta prochaine visite. Clique sur l'étoile d'un outil et il vient se ranger tout seul</p>
+      </div>
+      <div class="cards favorites-grid" id="favorites-grid"></div>
+    </div>
+
+    <div class="section-head">
+      <span class="eyebrow">Les outils</span>
+      <h2>Six calculateurs. Aucune excuse.</h2>
+      <p>Conçus pour être utilisés entre deux foulées, pas pour décrocher un master de maths.</p>
+    </div>
+
+    <div class="cards" id="tools-grid">
+
+      <!-- CARTE 1 — ALLURE -->
+      <article class="card" data-tool="pace">
+        <div class="card-head">
+          <span class="card-num">Allure</span>
+          <h3>Calcul d'allure</h3>
+          <p class="card-joke">T'as couru combien, en combien de temps ? On fait le sale boulot.</p>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label for="p-dist">Distance (km)</label>
+            <input class="input" type="number" id="p-dist" value="21.1" min="0" step="0.1" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label>Temps (h&nbsp;:&nbsp;min&nbsp;:&nbsp;s)</label>
+            <div class="time-group">
+              <input type="number" id="p-h" value="1" min="0" aria-label="heures"><span>:</span>
+              <input type="number" id="p-m" value="45" min="0" max="59" aria-label="minutes"><span>:</span>
+              <input type="number" id="p-s" value="00" min="0" max="59" aria-label="secondes">
+            </div>
+          </div>
+          <div class="seg" id="p-unit" role="tablist">
+            <button class="is-active" data-unit="minkm">min / km</button>
+            <button data-unit="kmh">km / h</button>
+          </div>
+        </div>
+        <div class="result">
+          <span class="result-label">Ton allure</span>
+          <span class="result-value" id="p-out">4:59</span>
+        </div>
+        <div class="note">
+          <span class="note-tag">La théorie</span>
+          <p>L'allure, c'est le temps pour avaler 1&nbsp;km. En trail on raisonne en min/km plutôt qu'en km/h : avec le dénivelé, la vitesse pure ne veut plus dire grand-chose.</p>
+        </div>
+      </article>
+
+      <!-- CARTE 2 — PENTE -->
+      <article class="card" data-tool="slope">
+        <div class="card-head">
+          <span class="card-num">Pente</span>
+          <h3>Pourcentage de pente</h3>
+          <p class="card-joke">Ça grimpait vraiment, ou tu t'es plaint pour rien ?</p>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label for="s-deniv">Dénivelé (m)</label>
+            <input class="input" type="number" id="s-deniv" value="320" min="0" step="1" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="s-dist">Distance horizontale (m)</label>
+            <input class="input" type="number" id="s-dist" value="1500" min="1" step="1" inputmode="numeric">
+          </div>
+        </div>
+        <div class="result">
+          <span class="result-label">Pente moyenne</span>
+          <span class="result-value" id="s-out">21,3&nbsp;%</span>
+          <span class="result-sub" id="s-deg">≈ 12°</span>
+        </div>
+        <div class="note">
+          <span class="note-tag">La théorie</span>
+          <p>Pente&nbsp;(%) = <code>(dénivelé ÷ distance horizontale) × 100</code>. Une pente à 100&nbsp;%, c'est 45°. Au-delà de ~25&nbsp;%, courir coûte souvent plus cher que marcher vite.</p>
+        </div>
+      </article>
+
+      <!-- CARTE 3 — GAP (allure ajustée à la pente) -->
+      <article class="card" data-tool="gap">
+        <div class="card-head">
+          <span class="card-num">GAP</span>
+          <h3>Allure ajustée à la pente</h3>
+          <p class="card-joke">Ta montée poussive vaut peut-être un bon tempo à plat.</p>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label>Allure réelle (min&nbsp;:&nbsp;s / km)</label>
+            <div class="time-group">
+              <input type="number" id="g-pm" value="6" min="0" aria-label="minutes par km"><span>:</span>
+              <input type="number" id="g-ps" value="30" min="0" max="59" aria-label="secondes par km">
+            </div>
+          </div>
+          <div class="field">
+            <label for="g-grade">Pente (%) — négative en descente</label>
+            <input class="input" type="number" id="g-grade" value="10" step="0.5" inputmode="decimal">
+            <span class="field-hint">Valeur positive en montée (ex. <code>10</code>), négative en descente (ex. <code>-10</code>).</span>
+          </div>
+        </div>
+        <div class="result">
+          <span class="result-label">Équivalent à plat</span>
+          <span class="result-value" id="g-out">3:55 /km</span>
+          <span class="result-sub" id="g-sub">soit 15,3 km/h</span>
+        </div>
+        <div class="note">
+          <span class="note-tag">La théorie</span>
+          <p>Le <strong>GAP</strong> (Grade Adjusted Pace) ramène ton allure en côte ou en descente à son équivalent sur le plat, à effort égal. On s'appuie sur le coût énergétique de la course de <strong>Minetti</strong> : <code>équivalent = allure × coût(pente) ÷ coût(0)</code>. La descente n'est pas gratuite — le coût est minimal vers −10&nbsp;%, puis remonte.</p>
+        </div>
+      </article>
+
+      <!-- CARTE — TEMPS DE COURSE (fusion : Riegel + km-effort) -->
+      <article class="card card--wide" data-tool="time">
+        <div class="card-head">
+          <span class="card-num">Temps</span>
+          <h3>Temps de course</h3>
+          <p class="card-joke">Avant d'annoncer à ta moitié « je rentre dans 2&nbsp;h ».</p>
+        </div>
+
+        <div class="seg seg--wide" id="time-mode" role="tablist">
+          <button class="is-active" data-mode="ref">J'ai une référence</button>
+          <button data-mode="pace">Je connais mon allure</button>
+        </div>
+
+        <div class="time-body">
+          <!-- MODE A : à partir d'une course de référence (Riegel + km-effort) -->
+          <div class="time-inputs" data-mode="ref">
+            <div class="fields">
+              <div class="field">
+                <label for="r-rdist">Course de référence — distance (km)</label>
+                <input class="input" type="number" id="r-rdist" value="10" min="0" step="0.1" inputmode="decimal">
+              </div>
+              <div class="field">
+                <label>Référence — temps (h&nbsp;:&nbsp;min&nbsp;:&nbsp;s)</label>
+                <div class="time-group">
+                  <input type="number" id="r-rh" value="0" min="0" aria-label="heures"><span>:</span>
+                  <input type="number" id="r-rm" value="45" min="0" max="59" aria-label="minutes"><span>:</span>
+                  <input type="number" id="r-rs" value="00" min="0" max="59" aria-label="secondes">
+                </div>
+              </div>
+              <div class="field">
+                <label for="r-rdplus">Référence — D+ (m)</label>
+                <input class="input" type="number" id="r-rdplus" value="0" min="0" step="10" inputmode="numeric">
+                <span class="field-hint">0 si la référence était à plat (piste, route).</span>
+              </div>
+              <div class="field">
+                <label for="r-tdist">Course visée — distance (km)</label>
+                <input class="input" type="number" id="r-tdist" value="21.1" min="0" step="0.1" inputmode="decimal">
+              </div>
+              <div class="field">
+                <label for="r-tdplus">Course visée — D+ (m)</label>
+                <input class="input" type="number" id="r-tdplus" value="600" min="0" step="10" inputmode="numeric">
+              </div>
+            </div>
+          </div>
+
+          <!-- MODE B : à partir d'une allure cible (km-effort pur) -->
+          <div class="time-inputs" data-mode="pace" hidden>
+            <div class="fields">
+              <div class="field">
+                <label>Allure moyenne (min&nbsp;:&nbsp;s / km)</label>
+                <div class="time-group">
+                  <input type="number" id="t-pm" value="6" min="0" aria-label="minutes par km"><span>:</span>
+                  <input type="number" id="t-ps" value="30" min="0" max="59" aria-label="secondes par km">
+                </div>
+              </div>
+              <div class="field">
+                <label for="t-dist">Distance (km)</label>
+                <input class="input" type="number" id="t-dist" value="25" min="0" step="0.1" inputmode="decimal">
+              </div>
+              <div class="field">
+                <label for="t-deniv">Dénivelé positif — D+ (m)</label>
+                <input class="input" type="number" id="t-deniv" value="1200" min="0" step="10" inputmode="numeric">
+              </div>
+            </div>
+          </div>
+
+          <div class="result">
+            <span class="result-label">Temps estimé</span>
+            <span class="result-value" id="time-out">≈ 2 h 08</span>
+            <span class="result-sub" id="time-sub">soit 6:03 /km</span>
+          </div>
+        </div>
+
+        <div class="note">
+          <span class="note-tag">La théorie</span>
+          <p>Deux méthodes, une même base : le <strong>kilomètre-effort</strong> (<code>km-effort = distance + D+ ÷ 100</code>). En <strong>mode allure</strong>, on multiplie simplement km-effort × allure. En <strong>mode référence</strong>, on fait une <strong>double correction</strong> : on aplatit d'abord ta course de réf en lui retirant son D+ (<code>T₁_plat = T₁ ÷ (1 + D+_ref ÷ (100 × D₁))</code>), on projette ensuite via <strong>Riegel</strong> (<code>T₂ = T₁_plat × (D₂ ÷ D₁)<sup>1,06</sup></code>), puis on ajoute le D+ de la cible. Sans cette double correction, une réf en trail surestime massivement le temps cible.</p>
+        </div>
+      </article>
+
+      <!-- CARTE 6 — VO2MAX -->
+      <article class="card" data-tool="vo2">
+        <div class="card-head">
+          <span class="card-num">VO2max</span>
+          <h3>Calcul de VO2max</h3>
+          <p class="card-joke">La taille de ton moteur. Spoiler : on n'en a jamais assez.</p>
+        </div>
+        <div class="fields">
+          <div class="field">
+            <label for="o-vma">VMA (km/h)</label>
+            <input class="input" type="number" id="o-vma" value="16.5" min="0" step="0.1" inputmode="decimal">
+          </div>
+        </div>
+        <div class="result">
+          <span class="result-label">Ton VO2max</span>
+          <span class="result-value" id="o-out">57,8</span>
+          <span class="result-sub">ml/min/kg</span>
+        </div>
+        <div class="note">
+          <span class="note-tag">La théorie</span>
+          <p><code>VO2max ≈ 3,5 × VMA</code>. C'est le volume max d'oxygène que ton corps consomme par minute et par kilo : plus il est élevé, plus ta cylindrée aérobie est grosse. Tu peux aussi l'estimer via un test de Cooper (12&nbsp;min).</p>
+        </div>
+      </article>
+
+      <!-- CARTE 7 — VMA + ALLURES D'ENTRAÎNEMENT (pleine largeur) -->
+      <article class="card card--wide" data-tool="vma">
+        <div class="card-head">
+          <span class="card-num">VMA</span>
+          <h3>VMA &amp; allures d'entraînement</h3>
+          <p class="card-joke">Le chiffre qui décide de tout ton plan — et ce qu'il dit de tes séances.</p>
+        </div>
+
+        <div class="vma-body">
+          <!-- Colonne A : test demi-Cooper -->
+          <div class="vma-col">
+            <div class="fields">
+              <div class="field">
+                <label for="v-dist">Distance en 6 min — demi-Cooper (m)</label>
+                <input class="input" type="number" id="v-dist" value="1650" min="0" step="10" inputmode="numeric">
+              </div>
+            </div>
+            <div class="result">
+              <span class="result-label">Ta VMA</span>
+              <span class="result-value" id="v-out">16,5 km/h</span>
+              <span class="result-sub" id="v-pace">soit 3:38 /km</span>
+            </div>
+            <p class="vma-hint">Test demi-Cooper : cours le plus loin possible en 6&nbsp;min, à plat et bien échauffé. <code>VMA = distance (m) ÷ 100</code>.</p>
+          </div>
+
+          <!-- Colonne B : allures d'entraînement -->
+          <div class="vma-col">
+            <div class="vma-sub-head">
+              <h4>Allures d'entraînement</h4>
+              <p>Calées sur ta VMA. Modifie-la directement si tu la connais déjà.</p>
+            </div>
+            <div class="fields">
+              <div class="field">
+                <label for="vt-vma">VMA utilisée (km/h)</label>
+                <input class="input" type="number" id="vt-vma" value="16.5" min="0" step="0.1" inputmode="decimal">
+              </div>
+            </div>
+            <div class="paces">
+              <div class="pace-row" data-zone="endurance">
+                <span class="pace-zone">Endurance</span>
+                <span class="pace-pct">60&nbsp;%</span>
+                <span class="pace-val" id="vt-60">6:04 /km</span>
+              </div>
+              <div class="pace-row" data-zone="seuil">
+                <span class="pace-zone">Seuil</span>
+                <span class="pace-pct">80&nbsp;%</span>
+                <span class="pace-val" id="vt-80">4:33 /km</span>
+              </div>
+              <div class="pace-row" data-zone="seuil">
+                <span class="pace-zone">Seuil</span>
+                <span class="pace-pct">90&nbsp;%</span>
+                <span class="pace-val" id="vt-90">4:02 /km</span>
+              </div>
+              <div class="pace-row" data-zone="fractionne">
+                <span class="pace-zone">Fractionné</span>
+                <span class="pace-pct">100&nbsp;%</span>
+                <span class="pace-val" id="vt-100">3:38 /km</span>
+              </div>
+              <div class="pace-row" data-zone="fractionne">
+                <span class="pace-zone">Fractionné</span>
+                <span class="pace-pct">105&nbsp;%</span>
+                <span class="pace-val" id="vt-105">3:28 /km</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          <span class="note-tag">La théorie</span>
+          <p>À chaque zone son intensité : <code>allure = 60 ÷ (VMA × %)</code>. L'<strong>endurance fondamentale</strong> (≈ 60&nbsp;%) construit le foncier, le <strong>seuil</strong> (80–90&nbsp;%) repousse le mur lactique, le <strong>fractionné</strong> (100–105&nbsp;%) travaille la VMA elle-même. Chaînage direct avec l'outil VO2max ci-dessus.</p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPT -->
+<section class="concept" id="concept">
+  <div class="wrap">
+    <h2>Une page. Cinq outils. Zéro bullshit.</h2>
+    <div class="concept-grid">
+      <div class="concept-item">
+        <div class="bar"></div>
+        <h4>Rapide, point.</h4>
+        <p>Tout tient sur une page. Tu calcules en 5 secondes et tu retournes courir au lieu de fouiller dix onglets.</p>
+      </div>
+      <div class="concept-item">
+        <div class="bar"></div>
+        <h4>Aucun compte.</h4>
+        <p>Pas d'inscription, pas de pub, pas de newsletter qui te harcèle le dimanche soir. Tu viens, tu calcules, tu pars.</p>
+      </div>
+      <div class="concept-item">
+        <div class="bar"></div>
+        <h4>Juste, et expliqué.</h4>
+        <p>Chaque résultat vient avec sa formule. Tu ne fais pas que recopier un chiffre : tu comprends ce que tu calcules.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="brand" href="#">
+          <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true">
+            <rect width="40" height="40" rx="11" fill="#002FA7"/>
+            <path d="M6.5 29.5 L15 15.5 L20.5 22.5 L26 12 L33.5 29.5 Z" fill="#fff"/>
+            <circle cx="26" cy="12" r="2.1" fill="#002FA7"/>
+          </svg>
+          Trail&nbsp;<span class="b">Box</span>
+        </a>
+        <p>La boîte à outils du traileur pressé. Faite par quelqu'un qui en avait marre de chercher.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h5>Les outils</h5>
+          <a href="#outils">Allure</a>
+          <a href="#outils">Pourcentage de pente</a>
+          <a href="#outils">Allure ajustée à la pente</a>
+          <a href="#outils">Temps de course</a>
+          <a href="#outils">Calcul de VO2max</a>
+          <a href="#outils">VMA &amp; allures</a>
+        </div>
+        <div class="footer-col">
+          <h5>Le projet</h5>
+          <a href="#concept">Le concept</a>
+          <a href="#concept">Le coureur</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">© 2026 Trail Box — Fait entre deux sorties longues.</div>
+  </div>
+</footer>
+
+<!-- SNACKBAR -->
+<div class="snackbar" id="snackbar" role="status" aria-live="polite" aria-hidden="true">
+  <div class="snackbar-icon" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  </div>
+  <div class="snackbar-body">
+    <span class="snackbar-title" id="snackbar-title">Outil favorisé</span>
+    <span class="snackbar-desc" id="snackbar-desc">Il t'attend désormais en haut de page.</span>
+  </div>
+</div>
+
+<script src="app.js" defer></script>
+</body>
+</html>

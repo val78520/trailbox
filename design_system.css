@@ -1,0 +1,223 @@
+/* ============================================================================
+   TRAIL BOX — DESIGN SYSTEM
+   ----------------------------------------------------------------------------
+   Architecture de tokens inspirée de Material Design 3.
+   Deux couches :
+     1. REFERENCE tokens (--ds-ref-*)  → valeurs primitives brutes (la palette,
+        les polices, les pas de l'échelle). On n'y touche presque jamais.
+     2. SYSTEM tokens   (--ds-sys-*)   → rôles sémantiques (primary, surface,
+        on-surface, elevation-1…). C'est CE QUE consomme la feuille de style.
+   Règle d'or : aucun composant ne lit un --ds-ref-* directement.
+   ========================================================================== */
+
+:root {
+
+  /* ==========================================================================
+     1. REFERENCE — Palette
+     ====================================================================== */
+  --ds-ref-klein:           #002FA7;  /* Bleu Klein — couleur de marque       */
+  --ds-ref-klein-deep:      #00248A;  /* Klein assombri (états hover)         */
+  --ds-ref-klein-container: #E9EEFC;  /* Voile clair de Klein (fonds doux)    */
+  --ds-ref-klein-light:     #6F9BFF;  /* Klein éclairci (sur fond sombre)     */
+  --ds-ref-licorice:        #15151A;  /* Noir réglisse — couleur secondaire   */
+  --ds-ref-gray-600:        #6E6E73;  /* Gris texte secondaire                */
+  --ds-ref-gray-300:        #DCDCE1;  /* Gris bordure                         */
+  --ds-ref-gray-100:        #F5F5F7;  /* Gris fond                            */
+  --ds-ref-white:           #FFFFFF;
+
+  /* Transparences sur fond blanc / sombre */
+  --ds-ref-white-72:        rgba(255, 255, 255, .72);
+  --ds-ref-white-82:        rgba(255, 255, 255, .82);
+  --ds-ref-white-60:        rgba(255, 255, 255, .60);
+  --ds-ref-white-50:        rgba(255, 255, 255, .50);
+  --ds-ref-white-45:        rgba(255, 255, 255, .45);
+  --ds-ref-white-12:        rgba(255, 255, 255, .12);
+  --ds-ref-licorice-05:     rgba(21, 21, 26, .05);
+  --ds-ref-licorice-06:     rgba(21, 21, 26, .06);
+  --ds-ref-licorice-12:     rgba(21, 21, 26, .12);
+  --ds-ref-klein-28:        rgba(0, 47, 167, .28);
+  --ds-ref-black-10:        rgba(0, 0, 0, .10);
+
+  /* ==========================================================================
+     1. REFERENCE — Typographie
+     ====================================================================== */
+  --ds-ref-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                      "SF Pro Text", "Inter", system-ui, sans-serif;
+  --ds-ref-font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Graisses */
+  --ds-ref-weight-regular:   400;
+  --ds-ref-weight-medium:    500;
+  --ds-ref-weight-semibold:  600;
+  --ds-ref-weight-bold:      700;
+  --ds-ref-weight-extrabold: 800;
+  --ds-ref-weight-black:     900;
+
+
+  /* ==========================================================================
+     2. SYSTEM — Couleur (rôles sémantiques)
+     ====================================================================== */
+  /* Marque / action */
+  --ds-sys-color-primary:            var(--ds-ref-klein);
+  --ds-sys-color-primary-hover:      var(--ds-ref-klein-deep);
+  --ds-sys-color-primary-container:  var(--ds-ref-klein-container);
+  --ds-sys-color-on-primary:         var(--ds-ref-white);
+
+  /* Surfaces claires */
+  --ds-sys-color-surface:            var(--ds-ref-white);
+  --ds-sys-color-surface-variant:    var(--ds-ref-gray-100);
+  --ds-sys-color-surface-translucent: var(--ds-ref-white-72); /* nav vitrée    */
+  --ds-sys-color-on-surface:         var(--ds-ref-licorice);
+  --ds-sys-color-on-surface-variant: var(--ds-ref-gray-600);
+  --ds-sys-color-outline:            var(--ds-ref-gray-300);
+
+  /* Surface inversée (footer sombre) */
+  --ds-sys-color-inverse-surface:            var(--ds-ref-licorice);
+  --ds-sys-color-primary-inverse:            var(--ds-ref-klein-light);
+  --ds-sys-color-on-inverse-surface:         var(--ds-ref-white);
+  --ds-sys-color-on-inverse-surface-link:    var(--ds-ref-white-82);
+  --ds-sys-color-on-inverse-surface-variant: var(--ds-ref-white-60);
+  --ds-sys-color-on-inverse-surface-dim:     var(--ds-ref-white-50);
+  --ds-sys-color-on-inverse-surface-muted:   var(--ds-ref-white-45);
+  --ds-sys-color-inverse-outline:            var(--ds-ref-white-12);
+
+
+  /* ==========================================================================
+     2. SYSTEM — Échelle typographique (type scale)
+     Inspirée des rôles Material : display / headline / title / body / label.
+     ====================================================================== */
+  --ds-sys-font-family-brand: var(--ds-ref-font-sans);
+  --ds-sys-font-family-plain: var(--ds-ref-font-sans);
+  --ds-sys-font-family-code:  var(--ds-ref-font-mono);
+
+  /* Tailles (fluides quand le rôle l'exige) */
+  --ds-sys-type-size-display-lg:  clamp(40px, 6.4vw, 78px); /* H1 héros        */
+  --ds-sys-type-size-headline-lg: clamp(30px, 4vw,   46px); /* H2 sections     */
+  --ds-sys-type-size-headline-md: clamp(28px, 3.4vw, 40px); /* H2 concept      */
+  --ds-sys-type-size-result:      34px;                     /* valeur résultat */
+  --ds-sys-type-size-title-lg:    23px;                     /* titre carte     */
+  --ds-sys-type-size-lead:        clamp(18px, 2.1vw, 22px); /* chapô héros     */
+  --ds-sys-type-size-title-md:    20px;                     /* sous-titres     */
+  --ds-sys-type-size-body-lg:     19px;
+  --ds-sys-type-size-button-lg:   17px;
+  --ds-sys-type-size-body-md:     16px;
+  --ds-sys-type-size-label-lg:    15px;
+  --ds-sys-type-size-card-joke:   14.5px;
+  --ds-sys-type-size-result-sub:  14px;
+  --ds-sys-type-size-label-md:    13.5px;
+  --ds-sys-type-size-body-sm:     13px;
+  --ds-sys-type-size-label-sm:    12px;
+  --ds-sys-type-size-label-xs:    11px;
+
+  /* Hauteurs de ligne */
+  --ds-sys-type-line-tight:   1;
+  --ds-sys-type-line-display: 1.02;
+  --ds-sys-type-line-snug:    1.05;
+  --ds-sys-type-line-lead:    1.45;
+  --ds-sys-type-line-normal:  1.5;
+
+  /* Interlettrage (tracking) */
+  --ds-sys-type-tracking-tightest: -.035em;
+  --ds-sys-type-tracking-tighter:  -.03em;
+  --ds-sys-type-tracking-tight:    -.02em;
+  --ds-sys-type-tracking-snug:     -.01em;
+  --ds-sys-type-tracking-wide:      .02em;
+  --ds-sys-type-tracking-wider:     .04em;
+  --ds-sys-type-tracking-widest:    .06em;
+  --ds-sys-type-tracking-caps-sm:   .08em;
+  --ds-sys-type-tracking-caps-lg:   .14em;
+
+
+  /* ==========================================================================
+     2. SYSTEM — Espacement (nom = valeur en px)
+     Le rythme principal suit une grille 4 pt (4, 8, 12, 16, 24, 32…).
+     Les pas intermédiaires (1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 18,
+     22, 26, 30, 34) couvrent les ajustements optiques internes aux
+     composants (padding de champ, gap de pilule, etc.).
+     ====================================================================== */
+  /* — Sous-grille : ajustements fins de composant — */
+  --ds-sys-spacing-1:   1px;
+  --ds-sys-spacing-2:   2px;
+  --ds-sys-spacing-3:   3px;
+  --ds-sys-spacing-5:   5px;
+  --ds-sys-spacing-6:   6px;
+  --ds-sys-spacing-7:   7px;
+  --ds-sys-spacing-9:   9px;
+  --ds-sys-spacing-10:  10px;
+  --ds-sys-spacing-11:  11px;
+  --ds-sys-spacing-13:  13px;
+  --ds-sys-spacing-14:  14px;
+  --ds-sys-spacing-15:  15px;
+  --ds-sys-spacing-18:  18px;
+  --ds-sys-spacing-22:  22px;
+  --ds-sys-spacing-26:  26px;
+  --ds-sys-spacing-30:  30px;
+  --ds-sys-spacing-34:  34px;
+
+  /* — Rythme principal (grille 4 pt) — */
+  --ds-sys-spacing-0:   0;
+  --ds-sys-spacing-4:   4px;
+  --ds-sys-spacing-8:   8px;
+  --ds-sys-spacing-12:  12px;
+  --ds-sys-spacing-16:  16px;
+  --ds-sys-spacing-20:  20px;
+  --ds-sys-spacing-24:  24px;
+  --ds-sys-spacing-28:  28px;
+  --ds-sys-spacing-32:  32px;
+  --ds-sys-spacing-36:  36px;
+  --ds-sys-spacing-40:  40px;
+  --ds-sys-spacing-48:  48px;
+  --ds-sys-spacing-52:  52px;
+  --ds-sys-spacing-64:  64px;
+  --ds-sys-spacing-72:  72px;
+  --ds-sys-spacing-84:  84px;
+  --ds-sys-spacing-96:  96px;
+  --ds-sys-spacing-104: 104px;
+  --ds-sys-spacing-108: 108px;
+  --ds-sys-spacing-116: 116px;
+
+
+  /* ==========================================================================
+     2. SYSTEM — Forme (corner radius)
+     ====================================================================== */
+  --ds-sys-shape-corner-xxs:   5px;    /* code inline                         */
+  --ds-sys-shape-corner-xs:    4px;    /* petites barres                      */
+  --ds-sys-shape-corner-sm:    8px;    /* bouton de segment                   */
+  --ds-sys-shape-corner-brand: 9px;    /* logo dans la nav                    */
+  --ds-sys-shape-corner-md:    11px;   /* conteneur de segment, icône app     */
+  --ds-sys-shape-corner-lg:    13px;   /* champs, encart résultat             */
+  --ds-sys-shape-corner-xl:    22px;   /* cartes                              */
+  --ds-sys-shape-corner-full:  980px;  /* pilules / boutons arrondis          */
+
+
+  /* ==========================================================================
+     2. SYSTEM — Élévation (ombres)
+     ====================================================================== */
+  --ds-sys-elevation-1: 0 1px 2px var(--ds-ref-licorice-05),
+                        0 18px 40px -18px var(--ds-ref-licorice-12);
+  --ds-sys-elevation-2: 0 1px 2px var(--ds-ref-licorice-06),
+                        0 30px 60px -22px var(--ds-ref-klein-28);
+  --ds-sys-elevation-segment: 0 1px 3px var(--ds-ref-black-10);
+
+
+  /* ==========================================================================
+     2. SYSTEM — Mouvement
+     ====================================================================== */
+  --ds-sys-motion-duration-fast:    .15s;
+  --ds-sys-motion-duration-medium:  .2s;
+  --ds-sys-motion-duration-slow:    .25s;
+  --ds-sys-motion-easing-standard:   ease;
+  --ds-sys-motion-easing-emphasized: cubic-bezier(.2, .7, .2, 1);
+
+
+  /* ==========================================================================
+     2. SYSTEM — Disposition (layout)
+     ====================================================================== */
+  --ds-sys-size-container-max: 1200px;
+  --ds-sys-z-sticky: 50;
+
+  /* Points de rupture — pour référence (les @media les répètent en dur,
+     CSS n'autorisant pas les variables dans les requêtes média) :
+       --ds-sys-breakpoint-md: 920px;
+       --ds-sys-breakpoint-sm: 560px;                                          */
+}
