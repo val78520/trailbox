@@ -221,7 +221,7 @@ const COURSE_DISTANCES = {
   '5000':    { km: 5,       pctLow: 92, pctHigh: 94,
                recF: '14:40 (C. Beaugrand, 2026)',  recH: '12:51 (J. Gressier, 2025)' },
   '10000':   { km: 10,      pctLow: 88, pctHigh: 92,
-               recF: '31:35 (C. Daunay, 2012)',     recH: '26:55 (J. Gressier, 2025)' },
+               recF: '30:52 (C. Beaugrand, 2026)',     recH: '26:55 (J. Gressier, 2025)' },
   'semi':    { km: 21.0975, pctLow: 84, pctHigh: 86,
                recF: '1:07:46 (M. Woldu, 2023)',    recH: '59:33 (J. Gressier, 2024)' },
   'marathon':{ km: 42.195,  pctLow: 80, pctHigh: 82,
@@ -521,9 +521,13 @@ renderFavorites();
   const elDist  = document.getElementById('gpx-dist');
   const elDistS = document.getElementById('gpx-dist-sub');
   const inner   = document.getElementById('gpx-chart-inner');
+  const plot    = document.getElementById('gpx-plot');
   const svg     = document.getElementById('gpx-svg');
   const areaEl  = document.getElementById('gpx-area');
   const lineEl  = document.getElementById('gpx-line');
+  const paceLineEl = document.getElementById('gpx-pace-line');
+  const axisPaceEl = document.getElementById('gpx-axis-pace');
+  const axisEleEl  = document.getElementById('gpx-axis-ele');
   const cursor  = document.getElementById('gpx-cursor');
   const dot     = document.getElementById('gpx-dot');
   const tip     = document.getElementById('gpx-tip');
@@ -532,6 +536,7 @@ renderFavorites();
   const tipSlope= document.getElementById('gpx-tip-slope');
   const tipPace = document.getElementById('gpx-tip-pace');
   const paceHint= document.getElementById('gpx-pace-hint');
+  const mapEl   = document.getElementById('gpx-map');
 
   const VB_W = 1000, VB_H = 260;          // repère du viewBox SVG
   const intFmt = n => Math.round(n).toLocaleString('fr-FR');
@@ -633,7 +638,16 @@ renderFavorites();
     }
     const fbar = effort > 0 ? fbarNum / effort : 0.5;
 
-    return { n, cum, ele, grade, total, dPlus, dMinus, effort, fbar, minE: Math.min(...ele), maxE: Math.max(...ele) };
+    // Ratio de coût par point (vs plat), fortement lissé → tendance d'allure.
+    const ratio = grade.map(g => minettiCost(g) / C0);
+    let win = Math.max(5, Math.round(n * 0.05));
+    if (win % 2 === 0) win++;
+    const ratioTrend = smooth(ratio, win);
+
+    const coords = pts.map(p => [p.lat, p.lon]);
+
+    return { n, cum, ele, grade, total, dPlus, dMinus, effort, fbar, ratioTrend, coords,
+             minE: Math.min(...ele), maxE: Math.max(...ele) };
   }
 
   /* --- Rendu du profil (SVG) ---------------------------------------------- */
@@ -657,6 +671,42 @@ renderFavorites();
     area = line + ' L' + lx + ' ' + VB_H + ' L0 ' + VB_H + ' Z';
     lineEl.setAttribute('d', line);
     areaEl.setAttribute('d', area);
+  }
+
+  // Axe altitude (droite) : haut = point le plus haut, bas = le plus bas.
+  function renderEleAxis() {
+    if (!track) { axisEleEl.innerHTML = ''; return; }
+    let html = '';
+    for (let k = 0; k < 5; k++) {
+      const v = track.maxE - (track.maxE - track.minE) * k / 4;
+      html += '<span>' + intFmt(v) + ' m</span>';
+    }
+    axisEleEl.innerHTML = html;
+  }
+
+  // Courbe d'allure (tendance lissée) + axe allure (gauche, haut = plus rapide).
+  function renderPaceCurve() {
+    if (!track) return;
+    const P = flatPace();
+    if (P == null) { paceLineEl.setAttribute('d', ''); axisPaceEl.innerHTML = ''; return; }
+    const { n, cum, total, ratioTrend } = track;
+    const pace = new Array(n);
+    let pMin = Infinity, pMax = -Infinity;
+    for (let i = 0; i < n; i++) {
+      const f = total > 0 ? cum[i] / total : 0;
+      const p = P * ratioTrend[i] * splitFactor(f);
+      pace[i] = p; if (p < pMin) pMin = p; if (p > pMax) pMax = p;
+    }
+    if (pMax - pMin < 1) { const mid = (pMax + pMin) / 2; pMin = mid - 15; pMax = mid + 15; }
+    const yP = p => 6 + (p - pMin) / (pMax - pMin) * (VB_H - 12);  // pMin (rapide) en haut
+    const STEP = Math.max(1, Math.floor(n / 600));
+    let d = '';
+    for (let i = 0; i < n; i += STEP) d += (i === 0 ? 'M' : 'L') + xOf(cum[i]).toFixed(1) + ' ' + yP(pace[i]).toFixed(1) + ' ';
+    d += 'L' + xOf(cum[n - 1]).toFixed(1) + ' ' + yP(pace[n - 1]).toFixed(1);
+    paceLineEl.setAttribute('d', d);
+    let html = '';
+    for (let k = 0; k < 5; k++) html += '<span>' + fmtPace(pMin + (pMax - pMin) * k / 4) + '</span>';
+    axisPaceEl.innerHTML = html;
   }
 
   /* --- Allure cible à effort constant ------------------------------------- */
@@ -727,14 +777,14 @@ renderFavorites();
   }
   function onLeave() { inner.classList.remove('is-hover'); }
 
-  inner.addEventListener('mousemove', onMove);
-  inner.addEventListener('mouseleave', onLeave);
-  inner.addEventListener('touchstart', onMove, { passive: true });
-  inner.addEventListener('touchmove', onMove, { passive: true });
-  inner.addEventListener('touchend', onLeave);
+  plot.addEventListener('mousemove', onMove);
+  plot.addEventListener('mouseleave', onLeave);
+  plot.addEventListener('touchstart', onMove, { passive: true });
+  plot.addEventListener('touchmove', onMove, { passive: true });
+  plot.addEventListener('touchend', onLeave);
 
   ['gpx-th', 'gpx-tm', 'gpx-ts'].forEach(id =>
-    document.getElementById(id).addEventListener('input', updateHint));
+    document.getElementById(id).addEventListener('input', () => { updateHint(); renderPaceCurve(); }));
 
   // Slider negative / positive split
   const splitInput = document.getElementById('gpx-split-input');
@@ -745,8 +795,45 @@ renderFavorites();
       : p > 0 ? 'Positif · ' + p + ' %'
       : 'Négatif · ' + Math.abs(p) + ' %';
   }
-  splitInput.addEventListener('input', updateSplitLabel);
+  splitInput.addEventListener('input', () => { updateSplitLabel(); renderPaceCurve(); });
   updateSplitLabel();
+
+  /* --- Bascule Graphique / Carte (Leaflet) -------------------------------- */
+  const PRIMARY = (getComputedStyle(document.documentElement)
+    .getPropertyValue('--ds-sys-color-primary') || '#002FA7').trim();
+  let map = null, trackLayer = null;
+
+  function renderMap() {
+    if (!track || !track.coords || track.coords.length < 2) return;
+    if (typeof L === 'undefined') {
+      showSnackbar('Carte indisponible', "Le module carte n'a pas pu être chargé.", { variant: 'error' });
+      return;
+    }
+    if (!map) {
+      map = L.map(mapEl, { scrollWheelZoom: false });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap',
+      }).addTo(map);
+    }
+    if (trackLayer) trackLayer.remove();
+    const line = L.polyline(track.coords, { color: PRIMARY, weight: 4, opacity: .9 });
+    const start = L.circleMarker(track.coords[0], { radius: 6, color: '#fff', weight: 2, fillColor: PRIMARY, fillOpacity: 1 });
+    const end = L.circleMarker(track.coords[track.coords.length - 1], { radius: 6, color: '#fff', weight: 2, fillColor: '#15151A', fillOpacity: 1 });
+    trackLayer = L.layerGroup([line, start, end]).addTo(map);
+    map.invalidateSize();
+    map.fitBounds(line.getBounds(), { padding: [18, 18] });
+  }
+
+  function showView(view) {
+    const isMap = view === 'map';
+    card.classList.toggle('is-map', isMap);
+    document.querySelectorAll('#gpx-view button').forEach(b =>
+      b.classList.toggle('is-active', b.dataset.view === view));
+    if (isMap) renderMap();
+  }
+  document.querySelectorAll('#gpx-view button').forEach(b =>
+    b.addEventListener('click', () => showView(b.dataset.view)));
 
   /* --- Chargement d'un fichier -------------------------------------------- */
   function handleFile(file) {
@@ -768,7 +855,10 @@ renderFavorites();
         elDistS.textContent = 'distance réelle';
         card.classList.remove('is-empty');
         renderChart();
+        renderEleAxis();
+        renderPaceCurve();
         updateHint();
+        if (card.classList.contains('is-map')) renderMap();
         showSnackbar('Trace importée', track.n.toLocaleString('fr-FR') + ' points analysés. Survole le profil.', { variant: 'success' });
       } catch (err) {
         showSnackbar('Import impossible', err.message || 'Fichier GPX invalide.', { variant: 'error' });

@@ -817,8 +817,54 @@ select.input {
 /* Graphe du profil */
 .gpx-chart { position: relative; }
 .gpx-chart-skel { height: 160px; width: 100%; }
-.gpx-chart-inner { position: relative; }
-.gpx-svg { display: block; width: 100%; height: 160px; overflow: visible; }
+.gpx-chart-inner { display: flex; align-items: stretch; gap: var(--ds-sys-spacing-6); }
+.gpx-plot { position: relative; flex: 1; min-width: 0; height: 160px; }
+.gpx-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* Axes verticaux (allure à gauche, altitude à droite) */
+.gpx-axis-y {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 160px;
+  font-size: var(--ds-sys-type-size-label-xs);
+  font-weight: var(--ds-ref-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.gpx-axis-pace { text-align: right; color: var(--ds-sys-color-pace-line); }
+.gpx-axis-ele  { text-align: left;  color: var(--ds-sys-color-on-surface-variant); }
+
+/* Courbe d'allure (tendance) posée sur le profil */
+.gpx-pace-line {
+  fill: none;
+  stroke: var(--ds-sys-color-pace-line);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Légende */
+.gpx-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-sys-spacing-14);
+  margin-top: var(--ds-sys-spacing-8);
+  font-size: var(--ds-sys-type-size-label-xs);
+  font-weight: var(--ds-ref-weight-semibold);
+  color: var(--ds-sys-color-on-surface-variant);
+}
+.gpx-legend-item { display: inline-flex; align-items: center; gap: var(--ds-sys-spacing-6); }
+.gpx-legend-item::before {
+  content: "";
+  width: 14px;
+  height: 3px;
+  border-radius: var(--ds-sys-shape-corner-full);
+}
+.gpx-legend-pace::before { background: var(--ds-sys-color-pace-line); }
+.gpx-legend-ele::before  { background: var(--ds-sys-color-primary); }
 .gpx-fill-top { stop-color: var(--ds-sys-color-primary); stop-opacity: .22; }
 .gpx-fill-bot { stop-color: var(--ds-sys-color-primary); stop-opacity: 0; }
 .gpx-area { fill: url(#gpxFill); stroke: none; }
@@ -900,9 +946,30 @@ select.input {
   margin-top: var(--ds-sys-spacing-6);
 }
 
+/* Bascule Graphique / Carte */
+.gpx-view-switch { width: 100%; }
+.gpx-map {
+  display: none;
+  width: 100%;
+  height: 280px;
+  border-radius: var(--ds-sys-shape-corner-lg);
+  overflow: hidden;
+  background: var(--ds-sys-color-surface-variant);
+  z-index: 0;
+}
+.gpx-map .leaflet-container { font-family: var(--ds-sys-font-family-plain); }
+/* Mode carte : on masque graphe, légende, temps visé et stratégie */
+.card--gpx.is-map .gpx-chart,
+.card--gpx.is-map .gpx-legend,
+.card--gpx.is-map .gpx-time-field,
+.card--gpx.is-map .gpx-split { display: none; }
+.card--gpx.is-map .gpx-map { display: block; }
+
 /* États vide (skeleton) vs rempli */
+.card--gpx.is-empty .gpx-view-switch,
 .card--gpx.is-empty .gpx-stat-value,
 .card--gpx.is-empty .gpx-stat-sub,
+.card--gpx.is-empty .gpx-legend,
 .card--gpx.is-empty .gpx-chart-inner { display: none; }
 .card--gpx:not(.is-empty) .gpx-stat-skel,
 .card--gpx:not(.is-empty) .gpx-chart-skel { display: none; }

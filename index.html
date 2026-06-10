@@ -19,6 +19,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+<!-- Leaflet (carte du tracé GPX) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
 <!-- Design system (tokens) PUIS styles (composants). L'ordre compte. -->
 <link rel="stylesheet" href="design_system.css">
 <link rel="stylesheet" href="styles.css">
@@ -479,6 +483,15 @@
           </div>
         </div>
 
+        <!-- Bascule Graphique / Carte -->
+        <div class="seg gpx-view-switch" id="gpx-view" role="tablist">
+          <button class="is-active" type="button" data-view="graph">Graphique</button>
+          <button type="button" data-view="map">Carte</button>
+        </div>
+
+        <!-- Carte du tracé (Leaflet) -->
+        <div class="gpx-map" id="gpx-map" aria-label="Carte du tracé"></div>
+
         <!-- Graphe du profil -->
         <div class="gpx-chart" id="gpx-chart">
           <svg class="gpx-chart-skel gpx-chart-ghost" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
@@ -486,29 +499,38 @@
             <path class="gpx-ghost-line" d="M0,190 L80,150 L160,205 L260,95 L360,150 L460,70 L560,175 L680,60 L800,130 L900,45 L1000,165"/>
           </svg>
           <div class="gpx-chart-inner" id="gpx-chart-inner">
-            <svg class="gpx-svg" id="gpx-svg" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <linearGradient id="gpxFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" class="gpx-fill-top"/>
-                  <stop offset="1" class="gpx-fill-bot"/>
-                </linearGradient>
-              </defs>
-              <path class="gpx-area" id="gpx-area" d=""/>
-              <path class="gpx-line" id="gpx-line" d=""/>
-              <line class="gpx-cursor" id="gpx-cursor" x1="0" y1="0" x2="0" y2="260" />
-              <circle class="gpx-dot" id="gpx-dot" r="4" cx="0" cy="0" />
-            </svg>
-            <div class="gpx-tip" id="gpx-tip" aria-hidden="true">
-              <span class="gpx-tip-km" id="gpx-tip-km">—</span>
-              <span class="gpx-tip-row"><span>Alt</span><b id="gpx-tip-alt">—</b></span>
-              <span class="gpx-tip-row"><span>Pente</span><b id="gpx-tip-slope">—</b></span>
-              <span class="gpx-tip-row gpx-tip-pace"><span>Allure cible</span><b id="gpx-tip-pace">—</b></span>
+            <div class="gpx-axis-y gpx-axis-pace" id="gpx-axis-pace" aria-hidden="true"></div>
+            <div class="gpx-plot" id="gpx-plot">
+              <svg class="gpx-svg" id="gpx-svg" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="gpxFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" class="gpx-fill-top"/>
+                    <stop offset="1" class="gpx-fill-bot"/>
+                  </linearGradient>
+                </defs>
+                <path class="gpx-area" id="gpx-area" d=""/>
+                <path class="gpx-line" id="gpx-line" d=""/>
+                <path class="gpx-pace-line" id="gpx-pace-line" d=""/>
+                <line class="gpx-cursor" id="gpx-cursor" x1="0" y1="0" x2="0" y2="260" />
+                <circle class="gpx-dot" id="gpx-dot" r="4" cx="0" cy="0" />
+              </svg>
+              <div class="gpx-tip" id="gpx-tip" aria-hidden="true">
+                <span class="gpx-tip-km" id="gpx-tip-km">—</span>
+                <span class="gpx-tip-row"><span>Alt</span><b id="gpx-tip-alt">—</b></span>
+                <span class="gpx-tip-row"><span>Pente</span><b id="gpx-tip-slope">—</b></span>
+                <span class="gpx-tip-row gpx-tip-pace"><span>Allure cible</span><b id="gpx-tip-pace">—</b></span>
+              </div>
             </div>
+            <div class="gpx-axis-y gpx-axis-ele" id="gpx-axis-ele" aria-hidden="true"></div>
+          </div>
+          <div class="gpx-legend">
+            <span class="gpx-legend-item gpx-legend-pace">Allure cible (tendance)</span>
+            <span class="gpx-legend-item gpx-legend-ele">Profil / altitude</span>
           </div>
         </div>
 
         <!-- Temps visé -->
-        <div class="field">
+        <div class="field gpx-time-field">
           <label>Temps visé (h&nbsp;:&nbsp;min&nbsp;:&nbsp;s)</label>
           <div class="time-group">
             <input type="number" id="gpx-th" value="1" min="0" aria-label="heures"><span>:</span>
