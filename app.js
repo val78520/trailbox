@@ -83,8 +83,13 @@ function calcTimeUnified() {
   const dplus = num('r-tdplus') || 0;
   if (!d1 || d1 <= 0 || t1 <= 0 || !d2 || d2 <= 0) { out.textContent = '—'; sub.textContent = ''; return; }
   // Aplatir la référence (km-effort inverse), projeter via Riegel, puis ré-ajouter le D+ cible.
+  // Exposant d'endurance VARIABLE : k croît avec la distance (la fatigue ultra > fatigue route).
+  // Évalué à la moyenne géométrique des 2 distances → symétrique (valable dans les deux sens),
+  // exact (= intégrale de k(d) = 1,06 + b·ln(d/10)), et k = 1,06 retrouvé si b = 0.
+  const b = 0.02;  // sensibilité à la fatigue, figée (calibrée ultra : k ≈ 1,10 à 80 km)
+  const kEff = 1.06 + (b / 2) * Math.log(d1 * d2 / 100);
   const t1Flat = t1 / (1 + dplusRef / (100 * d1));
-  const t2Flat = t1Flat * Math.pow(d2 / d1, 1.06);
+  const t2Flat = t1Flat * Math.pow(d2 / d1, kEff);
   const tFinal = t2Flat * (1 + dplus / (100 * d2));
   out.textContent = '≈ ' + fmtHM(tFinal / 60);
   sub.textContent = 'soit ' + fmtPace(tFinal / d2) + ' /km';
