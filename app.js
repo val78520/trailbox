@@ -114,6 +114,8 @@ function minettiCost(gradePct) {
        + 46.3 * i ** 2 + 19.5 * i + 3.6;
 }
 
+let gapMode = 'flat'; // 'flat' = équivalent à plat ; 'climb' = équivalent en montée
+
 function calcGAP() {
   const pm = num('g-pm') || 0, ps = num('g-ps') || 0;
   const grade = num('g-grade');
@@ -122,12 +124,28 @@ function calcGAP() {
   if (paceSec <= 0 || isNaN(grade)) { out.textContent = '—'; sub.textContent = ''; return; }
   const cost = minettiCost(grade);
   if (cost <= 0) { out.textContent = '—'; sub.textContent = ''; return; }
-  /* À effort égal : vitesse_plat = vitesse_réelle × coût(pente) ÷ coût(0)
-     donc allure_plat = allure_réelle × coût(0) ÷ coût(pente). */
-  const flatPaceSec = paceSec * 3.6 / cost;
-  out.textContent = fmtPace(flatPaceSec) + ' /km';
-  sub.textContent = 'soit ' + fr(3600 / flatPaceSec) + ' km/h';
+  /* À effort égal : coût(0) × vitesse_plat = coût(pente) × vitesse_pente.
+     - flat  : entrée = allure en montée → allure à plat  = allure × coût(0) ÷ coût(pente)
+     - climb : entrée = allure à plat    → allure en montée = allure × coût(pente) ÷ coût(0) */
+  const resPaceSec = gapMode === 'flat'
+    ? paceSec * 3.6 / cost
+    : paceSec * cost / 3.6;
+  out.textContent = fmtPace(resPaceSec) + ' /km';
+  sub.textContent = 'soit ' + fr(3600 / resPaceSec) + ' km/h';
 }
+
+document.querySelectorAll('#gap-mode button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#gap-mode button').forEach(x => x.classList.remove('is-active'));
+    b.classList.add('is-active');
+    gapMode = b.dataset.mode;
+    document.getElementById('g-pace-label').textContent =
+      gapMode === 'flat' ? 'Allure en montée (min / km)' : 'Allure à plat (min / km)';
+    document.getElementById('g-result-label').textContent =
+      gapMode === 'flat' ? 'Équivalent à plat' : 'Équivalent en montée';
+    calcGAP();
+  });
+});
 ['g-pm', 'g-ps', 'g-grade'].forEach(id => document.getElementById(id).addEventListener('input', calcGAP));
 
 /* ---- VO2max (≈ 3,5 × VMA) ----------------------------------------------- */
@@ -374,3 +392,39 @@ document.getElementById('vma-save').addEventListener('click', saveCurrentVMA);
 })();
 
 renderFavorites();
+
+/* Rend chaque bloc "La théorie" repliable, masqué par défaut */
+(function setupTheoryToggles() {
+  const CHEVRON = '<svg class="note-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+  document.querySelectorAll('.note').forEach((note, i) => {
+    const tag = note.querySelector('.note-tag');
+    if (!tag) return;
+    const content = Array.from(note.children).filter((el) => el !== tag);
+
+    // Bouton (tag + icône) qui pilote l'ouverture/fermeture
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'note-toggle';
+    btn.setAttribute('aria-expanded', 'false');
+    const panelId = 'note-panel-' + i;
+    btn.setAttribute('aria-controls', panelId);
+    tag.before(btn);
+    const chevron = document.createElement('span');
+    chevron.innerHTML = CHEVRON;
+    btn.append(tag, chevron.firstChild);
+
+    // Conteneur repliable (technique grid 0fr -> 1fr pour une transition fluide)
+    const collapse = document.createElement('div');
+    collapse.className = 'note-collapse';
+    collapse.id = panelId;
+    const inner = document.createElement('div');
+    inner.append(...content);
+    collapse.append(inner);
+    btn.after(collapse);
+
+    btn.addEventListener('click', () => {
+      const open = note.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+  });
+})();

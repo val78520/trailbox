@@ -340,7 +340,39 @@ body {
   color: var(--ds-sys-color-on-surface);
   opacity: .55;
 }
-.note p { font-size: var(--ds-sys-type-size-body-sm); line-height: var(--ds-sys-type-line-normal); color: var(--ds-sys-color-on-surface-variant); }
+.note-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-5);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+}
+.note-toggle .note-tag { opacity: .55; transition: opacity .2s ease; }
+.note-toggle:hover .note-tag { opacity: .85; }
+.note-chevron {
+  margin-left: auto;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  opacity: .55;
+  transition: transform .35s ease, opacity .2s ease;
+}
+.note-toggle:hover .note-chevron { opacity: .85; }
+.note.is-open .note-chevron { transform: rotate(180deg); }
+.note-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .35s ease;
+}
+.note.is-open .note-collapse { grid-template-rows: 1fr; }
+.note-collapse > div { overflow: hidden; min-height: 0; }
+.note p { font-size: var(--ds-sys-type-size-body-sm); line-height: var(--ds-sys-type-line-normal); color: var(--ds-sys-color-on-surface-variant); margin: 0; }
 .note code, .vma-hint code {
   font-family: var(--ds-sys-font-family-code);
   font-size: var(--ds-sys-type-size-label-sm);
