@@ -57,7 +57,7 @@
     <div class="hero-actions reveal d3">
       <a class="btn btn--primary btn--lg" href="#outils">Ouvrir la boîte</a>
       <a class="btn btn--ghost btn--lg" href="#concept">Comment ça marche</a>
-      <span class="hero-note">6 outils · 0 inscription</span>
+      <span class="hero-note">8 outils · 0 inscription</span>
     </div>
   </div>
 
@@ -95,7 +95,7 @@
 
     <div class="section-head">
       <span class="eyebrow">Les outils</span>
-      <h2>Six calculateurs. Aucune excuse.</h2>
+      <h2>Huit calculateurs. Aucune excuse.</h2>
       <p>Conçus pour être utilisés entre deux foulées, pas pour décrocher un master de maths.</p>
     </div>
 
@@ -395,6 +395,55 @@
         </div>
       </article>
 
+      <!-- CARTE 9 — ALLURES DE COURSE (références) -->
+      <article class="card" data-tool="course">
+        <div class="card-head">
+          <span class="card-num">Course</span>
+          <h3>Allures de course (références)</h3>
+          <p class="card-joke">À quel régime moteur les coureurs entraînés avalent ta distance. Toi, tu négocies encore avec tes mollets.</p>
+        </div>
+
+        <div class="fields">
+          <div class="field">
+            <label for="rc-vma">VMA utilisée (km/h)</label>
+            <input class="input" type="number" id="rc-vma" value="16.5" min="0" step="0.1" inputmode="decimal">
+            <span class="field-hint" id="rc-vma-saved">Aucune VMA sauvegardée pour l'instant.</span>
+          </div>
+          <div class="field">
+            <label for="rc-dist">Distance de la course</label>
+            <select class="input" id="rc-dist">
+              <option value="2000">2000 m</option>
+              <option value="5000">5 km</option>
+              <option value="10000" selected>10 km</option>
+              <option value="semi">Semi-marathon</option>
+              <option value="marathon">Marathon</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="result">
+          <span class="result-label">Temps estimé entre…</span>
+          <span class="result-value" id="rc-time">39:32 – 41:19</span>
+          <span class="result-sub" id="rc-pace">soit 3:57 – 4:08 /km</span>
+          <span class="result-extra result-extra--stack">
+            <span class="result-extra-label">Recommandation</span>
+            <span id="rc-reco">couru à 88–92&nbsp;% de la VMA</span>
+          </span>
+          <span class="result-extra result-extra--stack">
+            <span class="result-extra-label">Record de France 🇫🇷</span>
+            <span class="result-extra-records" id="rc-record">
+              <span class="rc-record-line">F&nbsp;· 31:35 (C. Daunay, 2012)</span>
+              <span class="rc-record-line">H&nbsp;· 26:55 (J. Gressier, 2025)</span>
+            </span>
+          </span>
+        </div>
+
+        <div class="note">
+          <span class="note-tag">La théorie</span>
+          <p>Un coureur <strong>entraîné</strong> ne court pas toutes les distances au même régime : plus c'est long, plus le pourcentage de <strong>VMA</strong> tenable baisse. Références classiques — <strong>2000&nbsp;m</strong> : 98–102&nbsp;% · <strong>5&nbsp;km</strong> : 92–94&nbsp;% · <strong>10&nbsp;km</strong> : 88–92&nbsp;% · <strong>semi</strong> : 84–86&nbsp;% · <strong>marathon</strong> : 80–82&nbsp;%. On en déduit l'allure (<code>allure = 60 ÷ (VMA × %)</code>) puis le temps. Ce sont des repères pour un coureur <em>bien entraîné</em> : débutant, vise plus bas.</p>
+        </div>
+      </article>
+
     </div>
   </div>
 </section>
@@ -402,7 +451,7 @@
 <!-- CONCEPT -->
 <section class="concept" id="concept">
   <div class="wrap">
-    <h2>Une page. Sept outils. Zéro bullshit.</h2>
+    <h2>Une page. Huit outils. Zéro bullshit.</h2>
     <div class="concept-grid">
       <div class="concept-item">
         <div class="bar"></div>
@@ -447,6 +496,7 @@
           <a href="#outils">Temps de course</a>
           <a href="#outils">Calcul de VO2max</a>
           <a href="#outils">VMA &amp; allures</a>
+          <a href="#outils">Allures de course</a>
         </div>
         <div class="footer-col">
           <h5>Le projet</h5>

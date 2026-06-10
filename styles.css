@@ -268,6 +268,16 @@ body {
 }
 .input[type=number], .time-group input[type=number] { -moz-appearance: textfield; }
 
+/* Select (dropdown) — reprend l'allure d'un .input avec un chevron custom */
+select.input {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  cursor: pointer;
+  padding-right: var(--ds-sys-spacing-32);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23002FA7' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--ds-sys-spacing-14) center;
+}
+
 .seg {
   display: flex;
   background: var(--ds-sys-color-surface-variant);
@@ -322,6 +332,34 @@ body {
   font-size: var(--ds-sys-type-size-result-sub);
   font-weight: var(--ds-ref-weight-semibold);
   color: var(--ds-sys-color-primary);
+  opacity: .7;
+}
+/* Lignes complémentaires dans un bloc résultat (reco, record…) */
+.result-extra {
+  font-size: var(--ds-sys-type-size-label-sm);
+  font-weight: var(--ds-ref-weight-semibold);
+  color: var(--ds-sys-color-primary);
+  opacity: .82;
+  display: flex;
+  align-items: baseline;
+  gap: var(--ds-sys-spacing-6);
+}
+.result-extra--stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-sys-spacing-2);
+}
+.result-extra-records {
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-sys-spacing-1);
+}
+.result-extra .result-extra-label {
+  font-size: var(--ds-sys-type-size-label-xs);
+  font-weight: var(--ds-ref-weight-bold);
+  letter-spacing: var(--ds-sys-type-tracking-wide);
+  text-transform: uppercase;
   opacity: .7;
 }
 

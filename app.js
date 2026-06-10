@@ -205,12 +205,61 @@ function calcVMA() {
   out.innerHTML = fr(vma) + '&nbsp;km/h';
   pace.textContent = 'soit ' + fmtPace(3600 / vma) + ' /km';
   document.getElementById('vt-vma').value = vma;  // chaînage : le test pilote les allures
+  document.getElementById('rc-vma').value = vma;  // … et les allures de course
   calcVMATraining();
+  calcCourse();
 }
 document.getElementById('v-dist').addEventListener('input', calcVMA);
 
+/* ---- 08 · ALLURES DE COURSE (références par distance) ------------------- */
+/* Pour chaque distance : % de VMA tenable par un coureur bien entraîné +
+   record de France (H/F) à titre de comparaison.
+   ⚠️ Records = valeurs best-effort À VÉRIFIER avant mise en prod. */
+const COURSE_DISTANCES = {
+  '2000':    { km: 2,       pctLow: 98, pctHigh: 102,
+               recF: '5:32 (A. Guillemot, 2024)', recH: '4:51 (M. Baala, 1999)' },
+  '5000':    { km: 5,       pctLow: 92, pctHigh: 94,
+               recF: '14:40 (C. Beaugrand, 2026)',  recH: '12:51 (J. Gressier, 2025)' },
+  '10000':   { km: 10,      pctLow: 88, pctHigh: 92,
+               recF: '31:35 (C. Daunay, 2012)',     recH: '26:55 (J. Gressier, 2025)' },
+  'semi':    { km: 21.0975, pctLow: 84, pctHigh: 86,
+               recF: '1:07:46 (M. Woldu, 2023)',    recH: '59:33 (J. Gressier, 2024)' },
+  'marathon':{ km: 42.195,  pctLow: 80, pctHigh: 82,
+               recF: '2:23:13 (M. Woldu, 2025)',    recH: '2:05:22 (M. Amdouni, 2023)' },
+};
+
+function calcCourse() {
+  const vma = num('rc-vma');
+  const key = document.getElementById('rc-dist').value;
+  const d = COURSE_DISTANCES[key];
+  const time = document.getElementById('rc-time');
+  const pace = document.getElementById('rc-pace');
+  const reco = document.getElementById('rc-reco');
+  const record = document.getElementById('rc-record');
+  if (!vma || vma <= 0 || !d) {
+    time.textContent = '—'; pace.textContent = '';
+    reco.textContent = ''; record.textContent = '—';
+    return;
+  }
+  // % haut → plus rapide → temps bas ; % bas → plus lent → temps haut
+  const speedFast = vma * d.pctHigh / 100;   // km/h
+  const speedSlow = vma * d.pctLow / 100;
+  const tLow  = d.km / speedFast * 3600;     // s (temps bas)
+  const tHigh = d.km / speedSlow * 3600;     // s (temps haut)
+  const paceFast = 3600 / speedFast;         // s/km (allure basse)
+  const paceSlow = 3600 / speedSlow;
+  time.textContent = fmtTime(tLow) + ' – ' + fmtTime(tHigh);
+  pace.textContent = 'soit ' + fmtPace(paceFast) + ' – ' + fmtPace(paceSlow) + ' /km';
+  reco.innerHTML = 'couru à ' + d.pctLow + '–' + d.pctHigh + '&nbsp;% de la VMA';
+  record.innerHTML =
+    '<span class="rc-record-line">F&nbsp;· ' + d.recF + '</span>' +
+    '<span class="rc-record-line">H&nbsp;· ' + d.recH + '</span>';
+}
+document.getElementById('rc-vma').addEventListener('input', calcCourse);
+document.getElementById('rc-dist').addEventListener('change', calcCourse);
+
 /* ---- Premier calcul au chargement --------------------------------------- */
-calcPace(); calcSlope(); calcGAP(); calcTimeUnified(); calcVO2(); calcVMA();
+calcPace(); calcSlope(); calcGAP(); calcTimeUnified(); calcVO2(); calcVMA(); calcCourse();
 
 
 /* ============================================================================
@@ -247,7 +296,7 @@ function loadFavorites() {
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) return [];
     // Filtre les ids inconnus (ex. 'riegel' suite à la fusion 04+05).
-    const valid = new Set(['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures']);
+    const valid = new Set(['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures', 'course']);
     return arr.filter(x => typeof x === 'string' && valid.has(x));
   } catch { return []; }
 }
@@ -297,7 +346,7 @@ function renderFavorites() {
 
   /* Renvoie les cartes non favorites dans la grille principale,
      en restaurant l'ordre d'origine (via data-tool) */
-  const originalOrder = ['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures'];
+  const originalOrder = ['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures', 'course'];
   originalOrder
     .filter(id => !favs.includes(id))
     .forEach(id => {
@@ -365,11 +414,14 @@ function loadSavedVMA() {
 }
 
 function updateSavedVMAHint() {
-  const hint = document.getElementById('vt-vma-saved');
   const saved = loadSavedVMA();
-  hint.textContent = saved
+  const txt = saved
     ? 'Dernière VMA sauvegardée : ' + fr(saved) + ' km/h'
     : "Aucune VMA sauvegardée pour l'instant.";
+  ['vt-vma-saved', 'rc-vma-saved'].forEach(id => {
+    const hint = document.getElementById(id);
+    if (hint) hint.textContent = txt;
+  });
 }
 
 function saveCurrentVMA() {
@@ -391,7 +443,9 @@ document.getElementById('vma-save').addEventListener('click', saveCurrentVMA);
   const saved = loadSavedVMA();
   if (saved) {
     document.getElementById('vt-vma').value = saved;
+    document.getElementById('rc-vma').value = saved;
     calcVMATraining();
+    calcCourse();
   }
   updateSavedVMAHint();
 })();
