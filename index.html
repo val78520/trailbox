@@ -57,7 +57,7 @@
     <div class="hero-actions reveal d3">
       <a class="btn btn--primary btn--lg" href="#outils">Ouvrir la boîte</a>
       <a class="btn btn--ghost btn--lg" href="#concept">Comment ça marche</a>
-      <span class="hero-note">8 outils · 0 inscription</span>
+      <span class="hero-note">9 outils · 0 inscription</span>
     </div>
   </div>
 
@@ -95,7 +95,7 @@
 
     <div class="section-head">
       <span class="eyebrow">Les outils</span>
-      <h2>Huit calculateurs. Aucune excuse.</h2>
+      <h2>Neuf calculateurs. Aucune excuse.</h2>
       <p>Conçus pour être utilisés entre deux foulées, pas pour décrocher un master de maths.</p>
     </div>
 
@@ -206,7 +206,7 @@
       <article class="card card--wide" data-tool="time">
         <div class="card-head">
           <span class="card-num">Temps</span>
-          <h3>Temps de course</h3>
+          <h3>Predicteur de course</h3>
           <p class="card-joke">Avant d'annoncer à ta moitié « je rentre dans 2&nbsp;h ».</p>
         </div>
 
@@ -444,6 +444,97 @@
         </div>
       </article>
 
+      <!-- CARTE 10 — ANALYSE DE TRACÉ (GPX) -->
+      <article class="card card--gpx is-empty" data-tool="gpx">
+        <div class="card-head">
+          <span class="card-num">Tracé</span>
+          <h3>Analyse de tracé</h3>
+          <p class="card-joke">Balance ton GPX, on t'en sort le portrait : bosses, descentes, et l'allure à tenir pour pas exploser dès le premier raidard.</p>
+        </div>
+
+        <div class="gpx-drop" id="gpx-drop" role="button" tabindex="0" aria-label="Déposer un fichier GPX">
+          <input type="file" id="gpx-file" accept=".gpx,application/gpx+xml" hidden>
+          <svg class="gpx-drop-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span class="gpx-drop-title">Dépose ton <strong>.gpx</strong> ici</span>
+          <span class="gpx-drop-sub">ou clique pour le choisir · fichier .gpx uniquement</span>
+        </div>
+
+        <!-- Données principales -->
+        <div class="gpx-stats">
+          <div class="gpx-stat">
+            <span class="gpx-stat-label">Dénivelé</span>
+            <span class="skel gpx-stat-skel"></span>
+            <span class="gpx-stat-value" id="gpx-dplus">—</span>
+            <span class="gpx-stat-sub" id="gpx-dminus"></span>
+          </div>
+          <div class="gpx-stat">
+            <span class="gpx-stat-label">Distance totale</span>
+            <span class="skel gpx-stat-skel"></span>
+            <span class="gpx-stat-value" id="gpx-dist">—</span>
+            <span class="gpx-stat-sub" id="gpx-dist-sub"></span>
+          </div>
+        </div>
+
+        <!-- Graphe du profil -->
+        <div class="gpx-chart" id="gpx-chart">
+          <svg class="gpx-chart-skel gpx-chart-ghost" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
+            <path class="gpx-ghost-area" d="M0,190 L80,150 L160,205 L260,95 L360,150 L460,70 L560,175 L680,60 L800,130 L900,45 L1000,165 L1000,260 L0,260 Z"/>
+            <path class="gpx-ghost-line" d="M0,190 L80,150 L160,205 L260,95 L360,150 L460,70 L560,175 L680,60 L800,130 L900,45 L1000,165"/>
+          </svg>
+          <div class="gpx-chart-inner" id="gpx-chart-inner">
+            <svg class="gpx-svg" id="gpx-svg" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="gpxFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" class="gpx-fill-top"/>
+                  <stop offset="1" class="gpx-fill-bot"/>
+                </linearGradient>
+              </defs>
+              <path class="gpx-area" id="gpx-area" d=""/>
+              <path class="gpx-line" id="gpx-line" d=""/>
+              <line class="gpx-cursor" id="gpx-cursor" x1="0" y1="0" x2="0" y2="260" />
+              <circle class="gpx-dot" id="gpx-dot" r="4" cx="0" cy="0" />
+            </svg>
+            <div class="gpx-tip" id="gpx-tip" aria-hidden="true">
+              <span class="gpx-tip-km" id="gpx-tip-km">—</span>
+              <span class="gpx-tip-row"><span>Alt</span><b id="gpx-tip-alt">—</b></span>
+              <span class="gpx-tip-row"><span>Pente</span><b id="gpx-tip-slope">—</b></span>
+              <span class="gpx-tip-row gpx-tip-pace"><span>Allure cible</span><b id="gpx-tip-pace">—</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Temps visé -->
+        <div class="field">
+          <label>Temps visé (h&nbsp;:&nbsp;min&nbsp;:&nbsp;s)</label>
+          <div class="time-group">
+            <input type="number" id="gpx-th" value="1" min="0" aria-label="heures"><span>:</span>
+            <input type="number" id="gpx-tm" value="30" min="0" max="59" aria-label="minutes"><span>:</span>
+            <input type="number" id="gpx-ts" value="00" min="0" max="59" aria-label="secondes">
+          </div>
+          <span class="field-hint" id="gpx-pace-hint">Importe une trace, fixe un temps visé : on adapte l'allure à chaque pente au survol du profil.</span>
+        </div>
+
+        <!-- Stratégie d'allure : negative / positive split -->
+        <div class="field gpx-split">
+          <label for="gpx-split-input">Stratégie d'allure <span class="gpx-split-val" id="gpx-split-val">Régulier</span></label>
+          <input class="gpx-range" type="range" id="gpx-split-input" min="-20" max="20" step="1" value="0" aria-label="Negative ou positive split">
+          <div class="gpx-split-ends">
+            <span>← Négatif (fin rapide)</span>
+            <span>Positif (départ rapide) →</span>
+          </div>
+        </div>
+
+        <div class="note">
+          <span class="note-tag">La théorie</span>
+          <p>On lit chaque point de la trace : la <strong>distance réelle</strong> est sommée par <strong>Haversine</strong> entre points GPS, le <strong>D+/D-</strong> en additionnant montées et descentes <em>après un léger lissage</em> (seuil ~3&nbsp;m) — sans ça, le moindre tremblement du GPS gonfle le dénivelé.</p>
+          <p>Pour l'<strong>allure cible</strong>, ton temps visé est réparti <strong>à effort constant</strong> via le coût énergétique de <strong>Minetti</strong> : une portion raide « coûte » plus de temps qu'un plat, une descente en rend. On calibre une allure plate équivalente <code>P = temps visé ÷ Σ (distanceᵢ × coût(penteᵢ) ÷ coût(0))</code> ; au survol, on affiche <code>P × coût(pente locale) ÷ coût(0)</code>. Par construction, la somme des temps segment par segment retombe <strong>pile sur ton objectif</strong>.</p>
+        </div>
+      </article>
+
     </div>
   </div>
 </section>
@@ -497,6 +588,7 @@
           <a href="#outils">Calcul de VO2max</a>
           <a href="#outils">VMA &amp; allures</a>
           <a href="#outils">Allures de course</a>
+          <a href="#outils">Analyse de tracé GPX</a>
         </div>
         <div class="footer-col">
           <h5>Le projet</h5>

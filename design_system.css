@@ -20,6 +20,7 @@
   --ds-ref-klein-container: #E9EEFC;  /* Voile clair de Klein (fonds doux)    */
   --ds-ref-klein-light:     #6F9BFF;  /* Klein éclairci (sur fond sombre)     */
   --ds-ref-licorice:        #15151A;  /* Noir réglisse — couleur secondaire   */
+  --ds-ref-tomato:          #C2362F;  /* Rouge — états d'erreur               */
   --ds-ref-gray-600:        #6E6E73;  /* Gris texte secondaire                */
   --ds-ref-gray-300:        #DCDCE1;  /* Gris bordure                         */
   --ds-ref-gray-100:        #F5F5F7;  /* Gris fond                            */
@@ -62,6 +63,10 @@
   --ds-sys-color-primary-hover:      var(--ds-ref-klein-deep);
   --ds-sys-color-primary-container:  var(--ds-ref-klein-container);
   --ds-sys-color-on-primary:         var(--ds-ref-white);
+
+  /* États (feedback) */
+  --ds-sys-color-error:              var(--ds-ref-tomato);
+  --ds-sys-color-on-error:           var(--ds-ref-white);
 
   /* Surfaces claires */
   --ds-sys-color-surface:            var(--ds-ref-white);
