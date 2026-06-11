@@ -965,11 +965,199 @@ select.input {
 .card--gpx.is-map .gpx-split { display: none; }
 .card--gpx.is-map .gpx-map { display: block; }
 
+/* ---- Temps de passage (repliable) -------------------------------------- */
+.gpx-splits {
+  border-top: 1px solid var(--ds-sys-color-outline);
+  padding-top: var(--ds-sys-spacing-16);
+}
+.gpx-splits-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-5);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+}
+.gpx-splits-tag {
+  font-size: var(--ds-sys-type-size-label-xs);
+  font-weight: var(--ds-ref-weight-bold);
+  letter-spacing: var(--ds-sys-type-tracking-caps-sm);
+  text-transform: uppercase;
+  color: var(--ds-sys-color-on-surface);
+  opacity: .55;
+  transition: opacity .2s ease;
+}
+.gpx-splits-toggle:hover .gpx-splits-tag { opacity: .85; }
+.gpx-splits-toggle:hover .note-chevron { opacity: .85; }
+.gpx-splits.is-open .note-chevron { transform: rotate(180deg); }
+.gpx-splits-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .35s ease;
+}
+.gpx-splits.is-open .gpx-splits-collapse { grid-template-rows: 1fr; }
+.gpx-splits-inner { overflow: hidden; min-height: 0; }
+.gpx-splits-empty {
+  padding-top: var(--ds-sys-spacing-12);
+  margin: 0;
+  font-size: var(--ds-sys-type-size-body-sm);
+  line-height: var(--ds-sys-type-line-normal);
+  color: var(--ds-sys-color-on-surface-variant);
+}
+.gpx-splits-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-sys-spacing-6);
+  padding-top: var(--ds-sys-spacing-12);
+}
+.gpx-split-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: var(--ds-sys-spacing-12);
+  padding: var(--ds-sys-spacing-10) var(--ds-sys-spacing-14);
+  background: var(--ds-sys-color-surface-variant);
+  border-radius: var(--ds-sys-shape-corner-md);
+}
+.gpx-split-frac {
+  font-size: var(--ds-sys-type-size-body-md);
+  font-weight: var(--ds-ref-weight-extrabold);
+  color: var(--ds-sys-color-primary);
+  font-variant-numeric: tabular-nums;
+}
+.gpx-split-meta {
+  font-size: var(--ds-sys-type-size-label-sm);
+  font-weight: var(--ds-ref-weight-semibold);
+  color: var(--ds-sys-color-on-surface-variant);
+  font-variant-numeric: tabular-nums;
+}
+.gpx-split-time {
+  font-size: var(--ds-sys-type-size-title-md, var(--ds-sys-type-size-body-lg));
+  font-weight: var(--ds-ref-weight-extrabold);
+  color: var(--ds-sys-color-on-surface);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ds-sys-type-tracking-tight);
+}
+
+/* ---- Plein écran ------------------------------------------------------- */
+/* Bouton bascule plein écran (à gauche du bouton favori) */
+.gpx-fs-btn {
+  position: absolute;
+  top: var(--ds-sys-spacing-16);
+  right: calc(var(--ds-sys-spacing-16) + 36px + var(--ds-sys-spacing-8));
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ds-sys-color-surface-variant);
+  border: none;
+  border-radius: var(--ds-sys-shape-corner-full);
+  cursor: pointer;
+  color: var(--ds-sys-color-on-surface-variant);
+  z-index: 3;
+  transition: background var(--ds-sys-motion-duration-medium) var(--ds-sys-motion-easing-standard),
+              color var(--ds-sys-motion-duration-medium) var(--ds-sys-motion-easing-standard),
+              transform var(--ds-sys-motion-duration-fast) var(--ds-sys-motion-easing-standard);
+}
+.gpx-fs-btn:hover { background: var(--ds-sys-color-primary-container); color: var(--ds-sys-color-primary); transform: scale(1.06); }
+.gpx-fs-btn svg { display: block; }
+.gpx-fs-btn .gpx-fs-ico-close { display: none; }
+/* On masque le bouton tant qu'aucune trace n'est chargée */
+.card--gpx.is-empty .gpx-fs-btn { display: none; }
+
+/* Voile derrière la carte plein écran */
+.gpx-fs-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, .18);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  opacity: 0;
+  z-index: var(--ds-sys-z-modal, 1000);
+  transition: opacity var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-standard);
+}
+.gpx-fs-backdrop.is-visible { opacity: 1; }
+
+/* Carte épinglée pour l'animation d'agrandissement */
+.card--gpx.is-fixed {
+  position: fixed;
+  z-index: calc(var(--ds-sys-z-modal, 1000) + 1);
+  margin: 0;
+  overflow: auto;
+  transition: top var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized),
+              left var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized),
+              width var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized),
+              height var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized),
+              border-radius var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized);
+}
+.card--gpx.is-fixed:hover { transform: none; box-shadow: var(--ds-sys-elevation-3, var(--ds-sys-elevation-2)); }
+
+/* Bascule de l'icône en plein écran */
+.card--gpx.is-fullscreen .gpx-fs-ico-open { display: none; }
+.card--gpx.is-fullscreen .gpx-fs-ico-close { display: block; }
+
+/* Réorganisation du contenu sur toute la largeur */
+.card--gpx.is-fullscreen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 28vw, 380px);
+  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-areas:
+    "head    stats"
+    "switch  time"
+    "chart   split"
+    "chart   splits"
+    "chart   note";
+  column-gap: var(--ds-sys-spacing-28);
+  row-gap: var(--ds-sys-spacing-16);
+  align-content: start;
+}
+.card--gpx.is-fullscreen .card-head    { grid-area: head; }
+.card--gpx.is-fullscreen .gpx-stats    { grid-area: stats; align-self: start; }
+.card--gpx.is-fullscreen .gpx-view-switch { grid-area: switch; align-self: start; }
+.card--gpx.is-fullscreen .gpx-chart    { grid-area: chart; min-height: 0; display: flex; flex-direction: column; }
+.card--gpx.is-fullscreen .gpx-map      { grid-area: chart; min-height: 0; height: 100%; }
+.card--gpx.is-fullscreen .gpx-time-field { grid-area: time; align-self: start; }
+.card--gpx.is-fullscreen .gpx-split    { grid-area: split; align-self: start; }
+.card--gpx.is-fullscreen .gpx-splits   { grid-area: splits; align-self: start; }
+.card--gpx.is-fullscreen .note         { grid-area: note; align-self: end; }
+.card--gpx.is-fullscreen .gpx-drop     { display: none; }
+
+/* En plein écran le graphe occupe toute la hauteur dispo */
+.card--gpx.is-fullscreen .gpx-chart-inner { flex: 1; min-height: 0; }
+.card--gpx.is-fullscreen .gpx-plot,
+.card--gpx.is-fullscreen .gpx-axis-y { height: auto; }
+/* En mode carte, on masque bien le graphe (priorité sur la règle is-fullscreen) */
+.card--gpx.is-fullscreen.is-map .gpx-chart { display: none; }
+.card--gpx.is-fullscreen.is-map .gpx-map { display: block; }
+
+@media (max-width: 600px) {
+  .card--gpx.is-fullscreen {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto minmax(220px, 1fr) auto auto auto auto;
+    grid-template-areas:
+      "head"
+      "stats"
+      "switch"
+      "chart"
+      "time"
+      "split"
+      "splits"
+      "note";
+  }
+}
+
 /* États vide (skeleton) vs rempli */
 .card--gpx.is-empty .gpx-view-switch,
 .card--gpx.is-empty .gpx-stat-value,
 .card--gpx.is-empty .gpx-stat-sub,
 .card--gpx.is-empty .gpx-legend,
+.card--gpx.is-empty .gpx-splits,
 .card--gpx.is-empty .gpx-chart-inner { display: none; }
 .card--gpx:not(.is-empty) .gpx-stat-skel,
 .card--gpx:not(.is-empty) .gpx-chart-skel { display: none; }

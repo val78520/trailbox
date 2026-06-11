@@ -610,10 +610,12 @@ renderFavorites();
     // D+ / D- par seuil d'hystérésis (~3 m) sur l'altitude lissée.
     const THRESH = 3;
     let dPlus = 0, dMinus = 0, ref = ele[0];
+    const dPlusCum = new Array(n).fill(0);
     for (let i = 1; i < n; i++) {
       const diff = ele[i] - ref;
       if (diff >= THRESH) { dPlus += diff; ref = ele[i]; }
       else if (diff <= -THRESH) { dMinus += -diff; ref = ele[i]; }
+      dPlusCum[i] = dPlus;
     }
 
     // Pente locale lissée (fenêtre ~50 m) en chaque point.
@@ -646,7 +648,7 @@ renderFavorites();
 
     const coords = pts.map(p => [p.lat, p.lon]);
 
-    return { n, cum, ele, grade, total, dPlus, dMinus, effort, fbar, ratioTrend, coords,
+    return { n, cum, ele, grade, total, dPlus, dMinus, dPlusCum, effort, fbar, ratioTrend, coords,
              minE: Math.min(...ele), maxE: Math.max(...ele) };
   }
 
@@ -707,6 +709,42 @@ renderFavorites();
     let html = '';
     for (let k = 0; k < 5; k++) html += '<span>' + fmtPace(pMin + (pMax - pMin) * k / 4) + '</span>';
     axisPaceEl.innerHTML = html;
+  }
+
+  /* --- Temps de passage (¼, ½, ¾) ---------------------------------------- */
+  // Temps cumulé à effort constant jusqu'à chaque fraction de distance,
+  // intégrant pente (Minetti) et stratégie de split — cohérent avec l'allure cible.
+  function renderSplits() {
+    const body = document.getElementById('gpx-splits-body');
+    if (!body) return;
+    const P = flatPace();
+    if (!track || P == null) {
+      body.innerHTML = '<p class="gpx-splits-empty">Renseigne un temps visé pour obtenir les temps de passage.</p>';
+      return;
+    }
+    const { n, cum, grade, total, dPlusCum } = track;
+    const fracs = [0.25, 0.5, 0.75];
+    const labels = ['¼', '½', '¾'];
+    const rows = fracs.map(f => ({ f, target: f * total, time: null, dist: 0, dplus: 0 }));
+    let t = 0, ti = 0;
+    for (let i = 1; i < n; i++) {
+      const seg = (cum[i] - cum[i - 1]) / 1000;
+      const fr = total > 0 ? cum[i] / total : 0;
+      t += seg * P * (minettiCost(grade[i]) / C0) * splitFactor(fr);
+      while (ti < rows.length && cum[i] >= rows[ti].target) {
+        rows[ti].time = t; rows[ti].dist = cum[i]; rows[ti].dplus = dPlusCum[i]; ti++;
+      }
+    }
+    body.innerHTML = '<div class="gpx-splits-list">' + rows.map((r, k) =>
+      '<div class="gpx-split-row">' +
+        '<span class="gpx-split-frac">' + labels[k] + '</span>' +
+        '<span class="gpx-split-meta">' +
+          (r.dist / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km' +
+          ' · D+ ' + intFmt(r.dplus) + ' m' +
+        '</span>' +
+        '<span class="gpx-split-time">' + (r.time == null ? '—' : fmtTime(r.time)) + '</span>' +
+      '</div>'
+    ).join('') + '</div>';
   }
 
   /* --- Allure cible à effort constant ------------------------------------- */
@@ -784,7 +822,7 @@ renderFavorites();
   plot.addEventListener('touchend', onLeave);
 
   ['gpx-th', 'gpx-tm', 'gpx-ts'].forEach(id =>
-    document.getElementById(id).addEventListener('input', () => { updateHint(); renderPaceCurve(); }));
+    document.getElementById(id).addEventListener('input', () => { updateHint(); renderPaceCurve(); renderSplits(); }));
 
   // Slider negative / positive split
   const splitInput = document.getElementById('gpx-split-input');
@@ -795,13 +833,22 @@ renderFavorites();
       : p > 0 ? 'Positif · ' + p + ' %'
       : 'Négatif · ' + Math.abs(p) + ' %';
   }
-  splitInput.addEventListener('input', () => { updateSplitLabel(); renderPaceCurve(); });
+  splitInput.addEventListener('input', () => { updateSplitLabel(); renderPaceCurve(); renderSplits(); });
   updateSplitLabel();
+
+  // Section repliable des temps de passage (repliée par défaut)
+  const splitsBox = document.getElementById('gpx-splits');
+  const splitsToggle = document.getElementById('gpx-splits-toggle');
+  function setSplitsOpen(open) {
+    splitsBox.classList.toggle('is-open', open);
+    splitsToggle.setAttribute('aria-expanded', String(open));
+  }
+  splitsToggle.addEventListener('click', () => setSplitsOpen(!splitsBox.classList.contains('is-open')));
 
   /* --- Bascule Graphique / Carte (Leaflet) -------------------------------- */
   const PRIMARY = (getComputedStyle(document.documentElement)
     .getPropertyValue('--ds-sys-color-primary') || '#002FA7').trim();
-  let map = null, trackLayer = null;
+  let map = null, trackLayer = null, mapBounds = null;
 
   function renderMap() {
     if (!track || !track.coords || track.coords.length < 2) return;
@@ -821,8 +868,17 @@ renderFavorites();
     const start = L.circleMarker(track.coords[0], { radius: 6, color: '#fff', weight: 2, fillColor: PRIMARY, fillOpacity: 1 });
     const end = L.circleMarker(track.coords[track.coords.length - 1], { radius: 6, color: '#fff', weight: 2, fillColor: '#15151A', fillOpacity: 1 });
     trackLayer = L.layerGroup([line, start, end]).addTo(map);
+    mapBounds = line.getBounds();
+    fitMap();
+    // Le layout (grille plein écran) peut se stabiliser après coup : on recadre.
+    requestAnimationFrame(fitMap);
+  }
+
+  // Recadre la carte sur la trace après tout changement de taille du conteneur.
+  function fitMap() {
+    if (!map || !mapBounds) return;
     map.invalidateSize();
-    map.fitBounds(line.getBounds(), { padding: [18, 18] });
+    map.fitBounds(mapBounds, { padding: [18, 18] });
   }
 
   function showView(view) {
@@ -834,6 +890,93 @@ renderFavorites();
   }
   document.querySelectorAll('#gpx-view button').forEach(b =>
     b.addEventListener('click', () => showView(b.dataset.view)));
+
+  /* --- Plein écran -------------------------------------------------------- */
+  const fsBtn = document.getElementById('gpx-fs-btn');
+  let isFS = false, placeholder = null, backdrop = null;
+
+  function fsTarget() {
+    const M = window.innerWidth <= 600 ? 20 : 28;   // padding latéral .wrap par breakpoint
+    const V = 16;                                     // marge haut/bas
+    const maxW = parseInt(getComputedStyle(document.documentElement)
+      .getPropertyValue('--ds-sys-size-container-max'), 10) || 1200;
+    // Même cadrage que .wrap : largeur plafonnée au conteneur, centrée.
+    const width = Math.min(window.innerWidth - 2 * M, maxW);
+    const left = (window.innerWidth - width) / 2;
+    return { left, top: V, width, height: window.innerHeight - 2 * V };
+  }
+  function setBox(b) {
+    card.style.left = b.left + 'px';
+    card.style.top = b.top + 'px';
+    card.style.width = b.width + 'px';
+    card.style.height = b.height + 'px';
+  }
+
+  function enterFS() {
+    if (isFS) return;
+    isFS = true;
+    const r = card.getBoundingClientRect();
+    placeholder = document.createElement('div');
+    placeholder.style.width = r.width + 'px';
+    placeholder.style.height = r.height + 'px';
+    card.parentNode.insertBefore(placeholder, card);
+
+    backdrop = document.createElement('div');
+    backdrop.className = 'gpx-fs-backdrop';
+    backdrop.addEventListener('click', exitFS);
+    document.body.appendChild(backdrop);
+
+    card.classList.add('is-fixed');
+    setBox({ left: r.left, top: r.top, width: r.width, height: r.height });
+    void card.offsetWidth;                            // reflow : fige l'état de départ
+
+    requestAnimationFrame(() => {
+      card.classList.add('is-fullscreen');
+      backdrop.classList.add('is-visible');
+      setBox(fsTarget());
+    });
+    fsBtn.setAttribute('aria-pressed', 'true');
+    fsBtn.setAttribute('aria-label', 'Quitter le plein écran');
+    document.body.style.overflow = 'hidden';
+    setSplitsOpen(true);                                // dépliée par défaut en plein écran
+
+    card.addEventListener('transitionend', onResizeFS, { once: true });
+  }
+
+  function exitFS() {
+    if (!isFS) return;
+    isFS = false;
+    const r = placeholder.getBoundingClientRect();
+    setSplitsOpen(false);                               // repliée en revenant en mode normal
+    card.classList.remove('is-fullscreen');
+    backdrop.classList.remove('is-visible');
+    setBox({ left: r.left, top: r.top, width: r.width, height: r.height });
+    fsBtn.setAttribute('aria-pressed', 'false');
+    fsBtn.setAttribute('aria-label', 'Afficher en plein écran');
+
+    card.addEventListener('transitionend', function done(e) {
+      if (e.propertyName !== 'width') return;
+      card.removeEventListener('transitionend', done);
+      card.classList.remove('is-fixed');
+      card.style.left = card.style.top = card.style.width = card.style.height = '';
+      if (placeholder) { placeholder.remove(); placeholder = null; }
+      if (backdrop) { backdrop.remove(); backdrop = null; }
+      document.body.style.overflow = '';
+      if (card.classList.contains('is-map')) fitMap();
+    }, false);
+  }
+
+  function onResizeFS() {
+    if (card.classList.contains('is-map')) fitMap();
+  }
+
+  fsBtn.addEventListener('click', () => isFS ? exitFS() : enterFS());
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFS) exitFS(); });
+  window.addEventListener('resize', () => {
+    if (!isFS) return;
+    setBox(fsTarget());
+    if (card.classList.contains('is-map')) fitMap();
+  });
 
   /* --- Chargement d'un fichier -------------------------------------------- */
   function handleFile(file) {
@@ -857,6 +1000,7 @@ renderFavorites();
         renderChart();
         renderEleAxis();
         renderPaceCurve();
+        renderSplits();
         updateHint();
         if (card.classList.contains('is-map')) renderMap();
         showSnackbar('Trace importée', track.n.toLocaleString('fr-FR') + ' points analysés. Survole le profil.', { variant: 'success' });
