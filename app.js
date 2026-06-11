@@ -535,6 +535,7 @@ renderFavorites();
   const tipAlt  = document.getElementById('gpx-tip-alt');
   const tipSlope= document.getElementById('gpx-tip-slope');
   const tipPace = document.getElementById('gpx-tip-pace');
+  const tipPaceLabel = document.getElementById('gpx-tip-pace-label');
   const paceHint= document.getElementById('gpx-pace-hint');
   const mapEl   = document.getElementById('gpx-map');
 
@@ -686,26 +687,48 @@ renderFavorites();
     axisEleEl.innerHTML = html;
   }
 
-  // Courbe d'allure (tendance lissée) + axe allure (gauche, haut = plus rapide).
+  // Allure moyenne par kilomètre (intègre pente Minetti + split) — sert à la
+  // courbe en escalier et au tooltip. Mise à jour à chaque rendu de la courbe.
+  let kmPace = [];
+  function computeKmPace() {
+    kmPace = [];
+    const P = flatPace();
+    if (!track || P == null) return;
+    const { n, cum, grade, total } = track;
+    const nb = Math.max(1, Math.ceil(total / 1000));
+    const bTime = new Array(nb).fill(0);
+    const bDist = new Array(nb).fill(0);
+    for (let i = 1; i < n; i++) {
+      const seg = cum[i] - cum[i - 1];
+      const mid = (cum[i] + cum[i - 1]) / 2;
+      let b = Math.floor(mid / 1000); if (b >= nb) b = nb - 1;
+      bTime[b] += (seg / 1000) * P * (minettiCost(grade[i]) / C0) * splitFactor(mid / total);
+      bDist[b] += seg;
+    }
+    kmPace = bTime.map((t, k) => bDist[k] > 0 ? t / (bDist[k] / 1000) : null);
+  }
+
+  // Courbe d'allure en escalier : un palier = allure moyenne du kilomètre.
   function renderPaceCurve() {
     if (!track) return;
     const P = flatPace();
-    if (P == null) { paceLineEl.setAttribute('d', ''); axisPaceEl.innerHTML = ''; return; }
-    const { n, cum, total, ratioTrend } = track;
-    const pace = new Array(n);
+    if (P == null) { paceLineEl.setAttribute('d', ''); axisPaceEl.innerHTML = ''; kmPace = []; return; }
+    computeKmPace();
+    const { total } = track;
+    const nb = kmPace.length;
     let pMin = Infinity, pMax = -Infinity;
-    for (let i = 0; i < n; i++) {
-      const f = total > 0 ? cum[i] / total : 0;
-      const p = P * ratioTrend[i] * splitFactor(f);
-      pace[i] = p; if (p < pMin) pMin = p; if (p > pMax) pMax = p;
-    }
+    for (const p of kmPace) { if (p == null) continue; if (p < pMin) pMin = p; if (p > pMax) pMax = p; }
+    if (!isFinite(pMin)) { pMin = 0; pMax = 1; }
     if (pMax - pMin < 1) { const mid = (pMax + pMin) / 2; pMin = mid - 15; pMax = mid + 15; }
     const yP = p => 6 + (p - pMin) / (pMax - pMin) * (VB_H - 12);  // pMin (rapide) en haut
-    const STEP = Math.max(1, Math.floor(n / 600));
     let d = '';
-    for (let i = 0; i < n; i += STEP) d += (i === 0 ? 'M' : 'L') + xOf(cum[i]).toFixed(1) + ' ' + yP(pace[i]).toFixed(1) + ' ';
-    d += 'L' + xOf(cum[n - 1]).toFixed(1) + ' ' + yP(pace[n - 1]).toFixed(1);
-    paceLineEl.setAttribute('d', d);
+    for (let k = 0; k < nb; k++) {
+      if (kmPace[k] == null) continue;
+      const x0 = xOf(k * 1000), x1 = xOf(Math.min((k + 1) * 1000, total));
+      const y = yP(kmPace[k]).toFixed(1);
+      d += (d === '' ? 'M' : 'L') + x0.toFixed(1) + ' ' + y + ' L' + x1.toFixed(1) + ' ' + y + ' ';
+    }
+    paceLineEl.setAttribute('d', d.trim());
     let html = '';
     for (let k = 0; k < 5; k++) html += '<span>' + fmtPace(pMin + (pMax - pMin) * k / 4) + '</span>';
     axisPaceEl.innerHTML = html;
@@ -802,10 +825,14 @@ renderFavorites();
     cursor.setAttribute('x1', xPx); cursor.setAttribute('x2', xPx);
     dot.setAttribute('cx', xPx); dot.setAttribute('cy', yPx);
     const g = track.grade[i];
-    const pace = paceAt(g, track.total > 0 ? track.cum[i] / track.total : 0);
+    // Allure moyenne du kilomètre en cours (cohérent avec la courbe en escalier).
+    let km = Math.floor(track.cum[i] / 1000);
+    if (km >= kmPace.length) km = kmPace.length - 1;
+    const pace = (km >= 0 && kmPace[km] != null) ? kmPace[km] : null;
     tipKm.textContent = (track.cum[i] / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
     tipAlt.textContent = intFmt(track.ele[i]) + ' m';
     tipSlope.textContent = (g >= 0 ? '+' : '') + g.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %';
+    if (tipPaceLabel) tipPaceLabel.textContent = km >= 0 ? 'Allure moy. km ' + (km + 1) : 'Allure cible';
     tipPace.textContent = pace == null ? '—' : fmtPace(pace) + ' /km';
     // position du tooltip + recadrage aux bords pour éviter le débordement
     tip.style.left = (frac * 100) + '%';
