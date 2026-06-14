@@ -544,6 +544,13 @@ renderFavorites();
   const C0 = minettiCost(0);              // coût à plat (= 3,6)
 
   let track = null;                        // données calculées de la trace
+  let pacingOn = false;                     // calcul d'allure cible activé (switch)
+  let ravitos = [];                        // [{ id, distM, stopSec }] points d'arrêt
+  let ravitoSeq = 0;                        // identifiant incrémental
+
+  const RAVITO_COLOR = '#E8590C';          // ambre — distinct du tracé (bleu)
+  const totalStopSec = () => ravitos.reduce((s, r) => s + r.stopSec, 0);
+  const stopsUpTo = distM => ravitos.reduce((s, r) => s + (r.distM <= distM ? r.stopSec : 0), 0);
 
   /* --- Géométrie ---------------------------------------------------------- */
   function haversine(a, b) {
@@ -694,6 +701,7 @@ renderFavorites();
     kmPace = [];
     const P = flatPace();
     if (!track || P == null) return;
+    computeClimbBar();
     const { n, cum, grade, total } = track;
     const nb = Math.max(1, Math.ceil(total / 1000));
     const bTime = new Array(nb).fill(0);
@@ -702,7 +710,7 @@ renderFavorites();
       const seg = cum[i] - cum[i - 1];
       const mid = (cum[i] + cum[i - 1]) / 2;
       let b = Math.floor(mid / 1000); if (b >= nb) b = nb - 1;
-      bTime[b] += (seg / 1000) * P * (minettiCost(grade[i]) / C0) * splitFactor(mid / total);
+      bTime[b] += (seg / 1000) * P * (minettiCost(grade[i]) / C0) * splitFactor(mid / total) * climbMod(grade[i]);
       bDist[b] += seg;
     }
     kmPace = bTime.map((t, k) => bDist[k] > 0 ? t / (bDist[k] / 1000) : null);
@@ -745,6 +753,7 @@ renderFavorites();
       body.innerHTML = '<p class="gpx-splits-empty">Renseigne un temps visé pour obtenir les temps de passage.</p>';
       return;
     }
+    computeClimbBar();
     const { n, cum, grade, total, dPlusCum } = track;
     const fracs = [0.25, 0.5, 0.75];
     const labels = ['¼', '½', '¾'];
@@ -753,9 +762,10 @@ renderFavorites();
     for (let i = 1; i < n; i++) {
       const seg = (cum[i] - cum[i - 1]) / 1000;
       const fr = total > 0 ? cum[i] / total : 0;
-      t += seg * P * (minettiCost(grade[i]) / C0) * splitFactor(fr);
+      t += seg * P * (minettiCost(grade[i]) / C0) * splitFactor(fr) * climbMod(grade[i]);
       while (ti < rows.length && cum[i] >= rows[ti].target) {
-        rows[ti].time = t; rows[ti].dist = cum[i]; rows[ti].dplus = dPlusCum[i]; ti++;
+        // Temps de passage = temps de course + arrêts ravitos déjà franchis.
+        rows[ti].time = t + stopsUpTo(cum[i]); rows[ti].dist = cum[i]; rows[ti].dplus = dPlusCum[i]; ti++;
       }
     }
     body.innerHTML = '<div class="gpx-splits-list">' + rows.map((r, k) =>
@@ -777,11 +787,16 @@ renderFavorites();
     const s = parseFloat(document.getElementById('gpx-ts').value) || 0;
     return h * 3600 + m * 60 + s;
   }
-  // Allure plate équivalente P (s/km) : temps visé ÷ distance-effort.
+  // Allure plate équivalente P (s/km) : temps de course (temps visé − arrêts
+  // ravitos) ÷ distance-effort. Les arrêts sont du temps mort inclus dans
+  // l'objectif → l'allure de course s'accélère pour les absorber.
   function flatPace() {
+    if (!pacingOn) return null;    // fonctionnalité désactivée (switch) → pas d'allure
     const t = targetTimeSec();
     if (!track || track.effort <= 0 || t <= 0) return null;
-    return t / track.effort;
+    const run = t - totalStopSec();
+    if (run <= 0) return null;     // les arrêts dépassent l'objectif
+    return run / track.effort;
   }
   // Split : pente d'allure a = curseur / 100 (a>0 = positif, départ rapide).
   function splitSlope() {
@@ -792,17 +807,54 @@ renderFavorites();
   function splitFactor(f) {
     return 1 + splitSlope() * (f - track.fbar);
   }
-  // Allure cible (s/km) : P × coût(pente)/coût(0) × facteur de split.
+
+  /* --- Effort en montée --------------------------------------------------- */
+  // Curseur -100..100 → e ∈ [-EMAX, EMAX]. e>0 = on pousse en montée.
+  const CLIMB_GREF = 12;     // pente (%) où l'intensité de montée sature à 1
+  const CLIMB_EMAX = 0.30;   // amplitude max (±30 %) sur les portions les plus raides
+  function climbEffort() {
+    return ((parseFloat(document.getElementById('gpx-climb-input').value) || 0) / 100) * CLIMB_EMAX;
+  }
+  // Intensité de montée d'un point ∈ [0,1] : 0 à plat/descente, 1 dès CLIMB_GREF.
+  function uClimb(g) { return Math.min(1, Math.max(0, g) / CLIMB_GREF); }
+
+  // Moyenne d'intensité de montée pondérée par l'effort (et le split) du tracé.
+  // Centrer uClimb sur cette valeur garantit Σ W·(u−ū)=0 → temps total inchangé.
+  let climbBar = 0;
+  function computeClimbBar() {
+    climbBar = 0;
+    if (!track) return;
+    const { n, cum, grade, total } = track;
+    let num = 0, den = 0;
+    for (let i = 1; i < n; i++) {
+      const seg = (cum[i] - cum[i - 1]) / 1000;
+      const fr = total > 0 ? cum[i] / total : 0;
+      const W = seg * (minettiCost(grade[i]) / C0) * splitFactor(fr);
+      num += W * uClimb(grade[i]);
+      den += W;
+    }
+    climbBar = den > 0 ? num / den : 0;
+  }
+  // Modificateur d'allure dû à l'effort en montée (centré → temps total constant).
+  // <1 = plus rapide (montées quand on pousse), >1 = plus lent (plat/descente, compense).
+  function climbMod(g) {
+    const m = 1 - climbEffort() * (uClimb(g) - climbBar);
+    return Math.max(0.5, m);   // garde-fou contre une allure aberrante
+  }
+
+  // Allure cible (s/km) : P × coût(pente)/coût(0) × split × effort-montée.
   function paceAt(g, f) {
     const P = flatPace();
-    return P == null ? null : P * (minettiCost(g) / C0) * splitFactor(f);
+    return P == null ? null : P * (minettiCost(g) / C0) * splitFactor(f) * climbMod(g);
   }
 
   function updateHint() {
     const P = flatPace();
-    paceHint.textContent = P == null
-      ? "Renseigne un temps visé pour obtenir l'allure adaptée à chaque pente."
-      : 'Allure plate équivalente : ' + fmtPace(P) + ' /km — au survol, on l\'ajuste à la pente.';
+    if (P != null) { paceHint.textContent = ''; return; }
+    if (!pacingOn) { paceHint.textContent = "Active l'allure cible pour calculer l'allure adaptée à chaque pente."; return; }
+    paceHint.textContent = (track && targetTimeSec() > 0 && totalStopSec() >= targetTimeSec())
+      ? 'Tes arrêts ravitos dépassent le temps visé : augmente ton objectif.'
+      : "Renseigne un temps visé pour obtenir l'allure adaptée à chaque pente.";
   }
 
   /* --- Interaction au survol ---------------------------------------------- */
@@ -812,6 +864,14 @@ renderFavorites();
     while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < distM) lo = mid + 1; else hi = mid; }
     if (lo > 0 && (cum[lo] - distM) > (distM - cum[lo - 1])) lo--;
     return lo;
+  }
+  // Pente affichée au survol : moyenne sur les 10 m précédents et 10 m suivants.
+  function slopeWindow(i, half) {
+    const { n, cum, ele } = track;
+    let a = i; while (a > 0 && cum[i] - cum[a] < half) a--;
+    let b = i; while (b < n - 1 && cum[b] - cum[i] < half) b++;
+    const dx = cum[b] - cum[a];
+    return dx > 0.5 ? (ele[b] - ele[a]) / dx * 100 : 0;
   }
   function onMove(ev) {
     if (!track) return;
@@ -824,7 +884,7 @@ renderFavorites();
     const yPx = yOf(track.ele[i]);
     cursor.setAttribute('x1', xPx); cursor.setAttribute('x2', xPx);
     dot.setAttribute('cx', xPx); dot.setAttribute('cy', yPx);
-    const g = track.grade[i];
+    const g = slopeWindow(i, 10);
     // Allure moyenne du kilomètre en cours (cohérent avec la courbe en escalier).
     let km = Math.floor(track.cum[i] / 1000);
     if (km >= kmPace.length) km = kmPace.length - 1;
@@ -849,7 +909,7 @@ renderFavorites();
   plot.addEventListener('touchend', onLeave);
 
   ['gpx-th', 'gpx-tm', 'gpx-ts'].forEach(id =>
-    document.getElementById(id).addEventListener('input', () => { updateHint(); renderPaceCurve(); renderSplits(); }));
+    document.getElementById(id).addEventListener('input', () => { updateHint(); renderPaceCurve(); renderSplits(); renderRavitosList(); }));
 
   // Slider negative / positive split
   const splitInput = document.getElementById('gpx-split-input');
@@ -860,8 +920,20 @@ renderFavorites();
       : p > 0 ? 'Positif · ' + p + ' %'
       : 'Négatif · ' + Math.abs(p) + ' %';
   }
-  splitInput.addEventListener('input', () => { updateSplitLabel(); renderPaceCurve(); renderSplits(); });
+  splitInput.addEventListener('input', () => { updateSplitLabel(); renderPaceCurve(); renderSplits(); renderRavitosList(); });
   updateSplitLabel();
+
+  // Slider effort en montée
+  const climbInput = document.getElementById('gpx-climb-input');
+  const climbValEl = document.getElementById('gpx-climb-val');
+  function updateClimbLabel() {
+    const p = Math.round(parseFloat(climbInput.value) || 0);
+    climbValEl.textContent = p === 0 ? 'Neutre'
+      : p > 0 ? 'Offensif · +' + p + ' %'
+      : 'Tranquille · ' + p + ' %';
+  }
+  climbInput.addEventListener('input', () => { updateClimbLabel(); renderPaceCurve(); renderSplits(); renderRavitosList(); });
+  updateClimbLabel();
 
   // Section repliable des temps de passage (repliée par défaut)
   const splitsBox = document.getElementById('gpx-splits');
@@ -872,10 +944,217 @@ renderFavorites();
   }
   splitsToggle.addEventListener('click', () => setSplitsOpen(!splitsBox.classList.contains('is-open')));
 
+  /* --- Allure cible : activation (switch) + repli ------------------------- */
+  const pacingBox    = document.getElementById('gpx-pacing-box');
+  const pacingToggle = document.getElementById('gpx-pacing-toggle');
+  const pacingSwitch = document.getElementById('gpx-pacing-switch');
+
+  function setPacingOpen(open) {
+    pacingBox.classList.toggle('is-open', open);
+    pacingToggle.setAttribute('aria-expanded', String(open));
+  }
+  pacingToggle.addEventListener('click', () => setPacingOpen(!pacingBox.classList.contains('is-open')));
+
+  // Reflète l'état du switch : courbe d'allure, temps de passage, hints.
+  function applyPacing() {
+    pacingBox.classList.toggle('is-on', pacingOn);
+    card.classList.toggle('gpx-no-pacing', !pacingOn);
+    renderPaceCurve();
+    renderSplits();
+    renderRavitosList();
+    updateHint();
+  }
+  pacingSwitch.addEventListener('change', () => {
+    pacingOn = pacingSwitch.checked;
+    if (pacingOn) setPacingOpen(true);   // on déplie pour saisir le temps visé
+    applyPacing();
+  });
+
+  /* --- Ravitaillements ---------------------------------------------------- */
+  const ravBox     = document.getElementById('gpx-ravitos-box');
+  const ravToggle  = document.getElementById('gpx-ravitos-toggle');
+  const ravListEl  = document.getElementById('gpx-ravitos-list');
+  const ravCountEl = document.getElementById('gpx-ravitos-count');
+  const ravAddBtn  = document.getElementById('gpx-ravito-addbtn');
+  const ravForm    = document.getElementById('gpx-ravito-form');
+  const ravPosEl   = document.getElementById('gpx-ravito-pos');
+  const ravStopEl  = document.getElementById('gpx-ravito-stop');
+  const ravConfirm = document.getElementById('gpx-ravito-confirm');
+  const ravCancel  = document.getElementById('gpx-ravito-cancel');
+  const ravMarksEl = document.getElementById('gpx-ravito-marks');
+
+  function setRavOpen(open) {
+    ravBox.classList.toggle('is-open', open);
+    ravToggle.setAttribute('aria-expanded', String(open));
+  }
+  ravToggle.addEventListener('click', () => setRavOpen(!ravBox.classList.contains('is-open')));
+
+  // Durée d'arrêt formatée : « 3 min » ou « 1 min 30 ».
+  function fmtStop(sec) {
+    const m = Math.floor(sec / 60), s = Math.round(sec - m * 60);
+    if (s === 0) return m + ' min';
+    if (m === 0) return s + ' s';
+    return m + ' min ' + String(s).padStart(2, '0');
+  }
+
+  // Heure de passage (arrivée) à chaque ravito : temps de course jusqu'au point
+  // + arrêts des ravitos précédents (on arrive, on n'a pas encore stationné ici).
+  function ravitoPassages() {
+    const res = {};
+    const P = flatPace();
+    if (!track || P == null) return res;
+    computeClimbBar();
+    const { n, cum, grade, total } = track;
+    const sorted = ravitos.slice().sort((a, b) => a.distM - b.distM);
+    let t = 0, ri = 0;
+    const runAt = {};
+    for (let i = 1; i < n && ri < sorted.length; i++) {
+      const seg = (cum[i] - cum[i - 1]) / 1000;
+      const fr = total > 0 ? cum[i] / total : 0;
+      const dt = seg * P * (minettiCost(grade[i]) / C0) * splitFactor(fr) * climbMod(grade[i]);
+      // Le ravito tombe au milieu du segment : on interpole le temps de course
+      // au prorata de la distance, pour une heure de passage exacte (indépendante
+      // de la densité d'échantillonnage du GPX).
+      while (ri < sorted.length && cum[i] >= sorted[ri].distM) {
+        const segLen = cum[i] - cum[i - 1];
+        const frac = segLen > 0 ? (sorted[ri].distM - cum[i - 1]) / segLen : 1;
+        runAt[sorted[ri].id] = t + dt * Math.max(0, Math.min(1, frac));
+        ri++;
+      }
+      t += dt;
+    }
+    let cumStop = 0;
+    for (const r of sorted) {
+      res[r.id] = (runAt[r.id] != null ? runAt[r.id] : t) + cumStop;
+      cumStop += r.stopSec;
+    }
+    return res;
+  }
+
+  function renderRavitosList() {
+    ravCountEl.textContent = ravitos.length;
+    const sorted = ravitos.slice().sort((a, b) => a.distM - b.distM);
+    if (!sorted.length) {
+      ravListEl.innerHTML = '<p class="gpx-splits-empty">Aucun ravito. Ajoute tes points d\'arrêt pour ajuster allures et temps de passage.</p>';
+      return;
+    }
+    const pass = ravitoPassages();
+    ravListEl.innerHTML = sorted.map((r, k) => {
+      const km = (r.distM / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      const p = pass[r.id];
+      return '<div class="gpx-ravito-row">' +
+        '<div class="gpx-ravito-main">' +
+          '<span class="gpx-ravito-pos"><span class="gpx-ravito-dot"></span>km ' + km + '</span>' +
+          '<span class="gpx-ravito-meta">arrêt ' + fmtStop(r.stopSec) +
+            (p != null ? ' · passage ≈ ' + fmtTime(p) : '') + '</span>' +
+        '</div>' +
+        '<button class="gpx-ravito-del" type="button" data-del="' + r.id + '" aria-label="Supprimer ce ravitaillement">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+        '</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Marqueurs minimalistes sur le profil : lignes verticales pointillées.
+  function renderRavitoMarks() {
+    if (!ravMarksEl) return;
+    if (!track) { ravMarksEl.innerHTML = ''; return; }
+    ravMarksEl.innerHTML = ravitos.map(r => {
+      const x = xOf(Math.min(r.distM, track.total)).toFixed(1);
+      return '<line class="gpx-ravito-mark" x1="' + x + '" y1="0" x2="' + x + '" y2="' + VB_H + '" vector-effect="non-scaling-stroke"/>';
+    }).join('');
+  }
+
+  function refreshRavitoOutputs() {
+    renderRavitosList();
+    renderRavitoMarks();
+    renderPaceCurve();
+    renderSplits();
+    updateHint();
+    if (card.classList.contains('is-map')) renderRavitoMap();
+  }
+
+  function resetRavitos() {
+    ravitos = [];
+    ravForm.hidden = true;
+    ravAddBtn.hidden = false;
+    renderRavitosList();
+    renderRavitoMarks();
+    if (map) renderRavitoMap();
+  }
+
+  function openRavitoForm() {
+    if (!track) return;
+    ravForm.hidden = false;
+    ravAddBtn.hidden = true;
+    ravPosEl.max = (track.total / 1000).toFixed(2);
+    ravPosEl.value = '';
+    ravPosEl.focus();
+  }
+  function closeRavitoForm() {
+    ravForm.hidden = true;
+    ravAddBtn.hidden = false;
+  }
+
+  function confirmRavito() {
+    if (!track) return;
+    const maxKm = track.total / 1000;
+    const posKm = parseFloat(ravPosEl.value);
+    const stopMin = parseFloat(ravStopEl.value);
+    if (!isFinite(posKm) || posKm <= 0) {
+      showSnackbar('Position manquante', 'Indique une position comprise entre 0 et ' + maxKm.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' km.', { variant: 'error' });
+      return;
+    }
+    if (posKm > maxKm) {
+      showSnackbar('Position hors tracé', 'Le ravito ne peut pas dépasser ' + maxKm.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' km.', { variant: 'error' });
+      return;
+    }
+    if (!isFinite(stopMin) || stopMin <= 0) {
+      showSnackbar('Durée manquante', "Indique un temps d'arrêt supérieur à zéro.", { variant: 'error' });
+      return;
+    }
+    ravitos.push({ id: ++ravitoSeq, distM: posKm * 1000, stopSec: Math.round(stopMin * 60) });
+    closeRavitoForm();
+    refreshRavitoOutputs();
+    showSnackbar('Ravitaillement ajouté', 'km ' + posKm.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' · arrêt ' + fmtStop(Math.round(stopMin * 60)) + '.', { variant: 'success' });
+  }
+
+  ravAddBtn.addEventListener('click', openRavitoForm);
+  ravCancel.addEventListener('click', closeRavitoForm);
+  ravConfirm.addEventListener('click', confirmRavito);
+  ravPosEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); confirmRavito(); } });
+  ravStopEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); confirmRavito(); } });
+
+  ravListEl.addEventListener('click', e => {
+    const btn = e.target.closest('[data-del]');
+    if (!btn) return;
+    const id = parseInt(btn.dataset.del, 10);
+    ravitos = ravitos.filter(r => r.id !== id);
+    refreshRavitoOutputs();
+    showSnackbar('Ravitaillement supprimé', 'Allures et temps de passage recalculés.', { variant: 'default' });
+  });
+
+  renderRavitosList();
+  applyPacing();   // état initial : calcul d'allure désactivé
+
   /* --- Bascule Graphique / Carte (Leaflet) -------------------------------- */
   const PRIMARY = (getComputedStyle(document.documentElement)
     .getPropertyValue('--ds-sys-color-primary') || '#002FA7').trim();
-  let map = null, trackLayer = null, mapBounds = null;
+  let map = null, trackLayer = null, mapBounds = null, ravitoMapLayer = null;
+
+  // Marqueurs ravitos sur la carte (au point GPS le plus proche de la position).
+  function renderRavitoMap() {
+    if (!map) return;
+    if (ravitoMapLayer) { ravitoMapLayer.remove(); ravitoMapLayer = null; }
+    if (!track || !ravitos.length || typeof L === 'undefined') return;
+    const marks = ravitos.map(r => {
+      const i = nearestIndex(Math.min(r.distM, track.total));
+      const km = (r.distM / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+      return L.circleMarker(track.coords[i], { radius: 5, color: '#fff', weight: 2, fillColor: RAVITO_COLOR, fillOpacity: 1 })
+        .bindTooltip('Ravito · km ' + km);
+    });
+    ravitoMapLayer = L.layerGroup(marks).addTo(map);
+  }
 
   function renderMap() {
     if (!track || !track.coords || track.coords.length < 2) return;
@@ -896,6 +1175,7 @@ renderFavorites();
     const end = L.circleMarker(track.coords[track.coords.length - 1], { radius: 6, color: '#fff', weight: 2, fillColor: '#15151A', fillOpacity: 1 });
     trackLayer = L.layerGroup([line, start, end]).addTo(map);
     mapBounds = line.getBounds();
+    renderRavitoMap();
     fitMap();
     // Le layout (grille plein écran) peut se stabiliser après coup : on recadre.
     requestAnimationFrame(fitMap);
@@ -965,7 +1245,9 @@ renderFavorites();
     fsBtn.setAttribute('aria-pressed', 'true');
     fsBtn.setAttribute('aria-label', 'Quitter le plein écran');
     document.body.style.overflow = 'hidden';
-    setSplitsOpen(true);                                // dépliée par défaut en plein écran
+    setSplitsOpen(true);                                // dépliées par défaut en plein écran
+    setRavOpen(true);
+    setPacingOpen(true);
 
     card.addEventListener('transitionend', onResizeFS, { once: true });
   }
@@ -974,7 +1256,9 @@ renderFavorites();
     if (!isFS) return;
     isFS = false;
     const r = placeholder.getBoundingClientRect();
-    setSplitsOpen(false);                               // repliée en revenant en mode normal
+    setSplitsOpen(false);                               // repliées en revenant en mode normal
+    setRavOpen(false);
+    setPacingOpen(false);
     card.classList.remove('is-fullscreen');
     backdrop.classList.remove('is-visible');
     setBox({ left: r.left, top: r.top, width: r.width, height: r.height });
@@ -1024,11 +1308,13 @@ renderFavorites();
         elDist.textContent  = (track.total / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
         elDistS.textContent = 'distance réelle';
         card.classList.remove('is-empty');
+        resetRavitos();
         renderChart();
         renderEleAxis();
         renderPaceCurve();
         renderSplits();
         updateHint();
+        renderRavitoMarks();
         if (card.classList.contains('is-map')) renderMap();
         showSnackbar('Trace importée', track.n.toLocaleString('fr-FR') + ' points analysés. Survole le profil.', { variant: 'success' });
       } catch (err) {

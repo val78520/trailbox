@@ -450,6 +450,7 @@
 
       <!-- CARTE 10 — ANALYSE DE TRACÉ (GPX) -->
       <article class="card card--gpx is-empty" data-tool="gpx">
+        <div class="gpx-col gpx-col-left">
         <div class="card-head">
           <span class="card-num">Tracé</span>
           <h3>Analyse de tracé</h3>
@@ -520,6 +521,7 @@
                 <path class="gpx-area" id="gpx-area" d=""/>
                 <path class="gpx-line" id="gpx-line" d=""/>
                 <path class="gpx-pace-line" id="gpx-pace-line" d=""/>
+                <g class="gpx-ravito-marks" id="gpx-ravito-marks" aria-hidden="true"></g>
                 <line class="gpx-cursor" id="gpx-cursor" x1="0" y1="0" x2="0" y2="260" />
                 <circle class="gpx-dot" id="gpx-dot" r="4" cx="0" cy="0" />
               </svg>
@@ -537,6 +539,25 @@
             <span class="gpx-legend-item gpx-legend-ele">Profil / altitude</span>
           </div>
         </div>
+        </div><!-- /.gpx-col-left -->
+
+        <div class="gpx-col gpx-col-right">
+
+        <!-- Allure cible — activable (switch) + repliable -->
+        <div class="gpx-splits gpx-pacing-box" id="gpx-pacing-box">
+          <div class="gpx-pacing-head">
+            <button class="gpx-splits-toggle gpx-pacing-toggle" id="gpx-pacing-toggle" type="button" aria-expanded="false" aria-controls="gpx-pacing-panel">
+              <span class="gpx-splits-tag">Allure cible</span>
+              <svg class="note-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <label class="gpx-switch">
+              <input type="checkbox" id="gpx-pacing-switch" aria-label="Activer le calcul d'allure cible">
+              <span class="gpx-switch-track"><span class="gpx-switch-thumb"></span></span>
+            </label>
+          </div>
+          <div class="gpx-splits-collapse" id="gpx-pacing-panel">
+            <div class="gpx-splits-inner">
+              <div class="gpx-pacing-fields">
 
         <!-- Temps visé -->
         <div class="field gpx-time-field">
@@ -559,6 +580,54 @@
           </div>
         </div>
 
+        <!-- Effort en montée -->
+        <div class="field gpx-split gpx-climb">
+          <label for="gpx-climb-input">Effort en montée <span class="gpx-split-val" id="gpx-climb-val">Neutre</span></label>
+          <input class="gpx-range" type="range" id="gpx-climb-input" min="-100" max="100" step="5" value="0" aria-label="Effort en montée">
+          <div class="gpx-split-ends">
+            <span>← Tranquille</span>
+            <span>On envoie du pâté →</span>
+          </div>
+        </div>
+
+              </div><!-- /.gpx-pacing-fields -->
+            </div>
+          </div>
+        </div><!-- /.gpx-pacing-box -->
+
+        <!-- Ravitaillements — repliable -->
+        <div class="gpx-splits gpx-ravitos-box" id="gpx-ravitos-box">
+          <button class="gpx-splits-toggle" id="gpx-ravitos-toggle" type="button" aria-expanded="false" aria-controls="gpx-ravitos-panel">
+            <span class="gpx-splits-tag">Ravitaillements <span class="gpx-ravitos-count" id="gpx-ravitos-count">0</span></span>
+            <svg class="note-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="gpx-splits-collapse" id="gpx-ravitos-panel">
+            <div class="gpx-splits-inner">
+              <div class="gpx-ravitos-list" id="gpx-ravitos-list"></div>
+              <button class="gpx-ravito-addbtn" id="gpx-ravito-addbtn" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ajouter un ravitaillement
+              </button>
+              <div class="gpx-ravito-form" id="gpx-ravito-form" hidden>
+                <div class="gpx-ravito-fields">
+                  <label class="gpx-ravito-field">
+                    <span>Position (km)</span>
+                    <input type="number" id="gpx-ravito-pos" min="0" step="0.1" placeholder="ex. 12,5">
+                  </label>
+                  <label class="gpx-ravito-field">
+                    <span>Arrêt (min)</span>
+                    <input type="number" id="gpx-ravito-stop" min="0" step="0.5" value="2">
+                  </label>
+                </div>
+                <div class="gpx-ravito-actions">
+                  <button type="button" class="gpx-ravito-cancel" id="gpx-ravito-cancel">Annuler</button>
+                  <button type="button" class="gpx-ravito-confirm" id="gpx-ravito-confirm">Ajouter</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Temps de passage (¼, ½, ¾) — repliable -->
         <div class="gpx-splits" id="gpx-splits">
           <button class="gpx-splits-toggle" id="gpx-splits-toggle" type="button" aria-expanded="false" aria-controls="gpx-splits-panel">
@@ -575,6 +644,7 @@
           <p>On lit chaque point de la trace : la <strong>distance réelle</strong> est sommée par <strong>Haversine</strong> entre points GPS, le <strong>D+/D-</strong> en additionnant montées et descentes <em>après un léger lissage</em> (seuil ~3&nbsp;m) — sans ça, le moindre tremblement du GPS gonfle le dénivelé.</p>
           <p>Pour l'<strong>allure cible</strong>, ton temps visé est réparti <strong>à effort constant</strong> via le coût énergétique de <strong>Minetti</strong> : une portion raide « coûte » plus de temps qu'un plat, une descente en rend. On calibre une allure plate équivalente <code>P = temps visé ÷ Σ (distanceᵢ × coût(penteᵢ) ÷ coût(0))</code> ; au survol, on affiche <code>P × coût(pente locale) ÷ coût(0)</code>. Par construction, la somme des temps segment par segment retombe <strong>pile sur ton objectif</strong>.</p>
         </div>
+        </div><!-- /.gpx-col-right -->
       </article>
 
     </div>

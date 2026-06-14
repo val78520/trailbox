@@ -1044,6 +1044,251 @@ select.input {
   letter-spacing: var(--ds-sys-type-tracking-tight);
 }
 
+/* ---- Ravitaillements ---------------------------------------------------- */
+.gpx-ravitos-box.is-open .note-chevron { transform: rotate(180deg); }
+.gpx-ravitos-box.is-open .gpx-splits-collapse { grid-template-rows: 1fr; }
+
+.gpx-ravitos-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: var(--ds-sys-spacing-4);
+  border-radius: var(--ds-sys-shape-corner-full);
+  background: var(--ds-ravito-color, #E8590C);
+  color: #fff;
+  font-size: 11px;
+  font-weight: var(--ds-ref-weight-extrabold);
+  letter-spacing: 0;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.gpx-ravitos-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-sys-spacing-6);
+  padding-top: var(--ds-sys-spacing-12);
+}
+.gpx-ravito-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--ds-sys-spacing-12);
+  padding: var(--ds-sys-spacing-10) var(--ds-sys-spacing-14);
+  background: var(--ds-sys-color-surface-variant);
+  border-radius: var(--ds-sys-shape-corner-md);
+}
+.gpx-ravito-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.gpx-ravito-pos {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-6);
+  font-size: var(--ds-sys-type-size-body-md);
+  font-weight: var(--ds-ref-weight-extrabold);
+  color: var(--ds-sys-color-on-surface);
+  font-variant-numeric: tabular-nums;
+}
+.gpx-ravito-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--ds-sys-shape-corner-full);
+  background: var(--ds-ravito-color, #E8590C);
+  flex: none;
+}
+.gpx-ravito-meta {
+  font-size: var(--ds-sys-type-size-label-sm);
+  font-weight: var(--ds-ref-weight-semibold);
+  color: var(--ds-sys-color-on-surface-variant);
+  font-variant-numeric: tabular-nums;
+}
+.gpx-ravito-pass {
+  font-size: var(--ds-sys-type-size-body-md);
+  font-weight: var(--ds-ref-weight-extrabold);
+  color: var(--ds-sys-color-on-surface);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ds-sys-type-tracking-tight);
+}
+.gpx-ravito-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  padding: 0;
+  border: none;
+  border-radius: var(--ds-sys-shape-corner-full);
+  background: transparent;
+  color: var(--ds-sys-color-on-surface-variant);
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+.gpx-ravito-del:hover {
+  background: var(--ds-sys-color-error);
+  color: var(--ds-sys-color-on-error);
+}
+.gpx-ravito-del svg { display: block; }
+
+.gpx-ravito-addbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-6);
+  margin-top: var(--ds-sys-spacing-10);
+  padding: var(--ds-sys-spacing-8) var(--ds-sys-spacing-14);
+  background: var(--ds-sys-color-surface-variant);
+  border: 1px dashed var(--ds-sys-color-outline);
+  border-radius: var(--ds-sys-shape-corner-md);
+  color: var(--ds-sys-color-on-surface);
+  font-size: var(--ds-sys-type-size-label-sm);
+  font-weight: var(--ds-ref-weight-bold);
+  cursor: pointer;
+  transition: border-color .2s ease, color .2s ease;
+}
+.gpx-ravito-addbtn:hover {
+  border-color: var(--ds-sys-color-primary);
+  color: var(--ds-sys-color-primary);
+}
+.gpx-ravito-addbtn svg { display: block; }
+
+.gpx-ravito-form {
+  margin-top: var(--ds-sys-spacing-12);
+  padding: var(--ds-sys-spacing-14);
+  background: var(--ds-sys-color-surface-variant);
+  border-radius: var(--ds-sys-shape-corner-md);
+}
+.gpx-ravito-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ds-sys-spacing-12);
+}
+.gpx-ravito-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-sys-spacing-6);
+}
+.gpx-ravito-field span {
+  font-size: var(--ds-sys-type-size-label-sm);
+  font-weight: var(--ds-ref-weight-semibold);
+  color: var(--ds-sys-color-on-surface-variant);
+}
+.gpx-ravito-field input {
+  width: 100%;
+  padding: var(--ds-sys-spacing-8) var(--ds-sys-spacing-10);
+  border: 1px solid var(--ds-sys-color-outline);
+  border-radius: var(--ds-sys-shape-corner-md);
+  background: var(--ds-sys-color-surface, #fff);
+  color: var(--ds-sys-color-on-surface);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.gpx-ravito-field input:focus {
+  outline: none;
+  border-color: var(--ds-sys-color-primary);
+}
+.gpx-ravito-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-sys-spacing-8);
+  margin-top: var(--ds-sys-spacing-12);
+}
+.gpx-ravito-cancel,
+.gpx-ravito-confirm {
+  padding: var(--ds-sys-spacing-8) var(--ds-sys-spacing-16);
+  border-radius: var(--ds-sys-shape-corner-full);
+  font-size: var(--ds-sys-type-size-label-sm);
+  font-weight: var(--ds-ref-weight-bold);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.gpx-ravito-cancel {
+  background: transparent;
+  border-color: var(--ds-sys-color-outline);
+  color: var(--ds-sys-color-on-surface-variant);
+}
+.gpx-ravito-cancel:hover { color: var(--ds-sys-color-on-surface); }
+.gpx-ravito-confirm {
+  background: var(--ds-sys-color-primary);
+  color: #fff;
+}
+.gpx-ravito-confirm:hover { background: var(--ds-sys-color-primary-hover); }
+
+/* Marqueurs sur le profil SVG (lignes verticales, épaisseur constante) */
+.gpx-ravito-mark {
+  stroke: var(--ds-ravito-color, #E8590C);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  opacity: .7;
+}
+
+/* ---- Allure cible (section activable + repliable) ----------------------- */
+.gpx-pacing-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-12);
+}
+.gpx-pacing-toggle { flex: 1; min-width: 0; }
+.gpx-pacing-box.is-open .note-chevron { transform: rotate(180deg); }
+.gpx-pacing-box.is-open .gpx-splits-collapse { grid-template-rows: 1fr; }
+.gpx-pacing-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-sys-spacing-18);
+  padding-top: var(--ds-sys-spacing-16);
+}
+/* Quand le calcul est désactivé : champs grisés et inertes */
+.gpx-pacing-box:not(.is-on) .gpx-pacing-fields {
+  opacity: .4;
+  pointer-events: none;
+}
+/* …et la courbe/légende d'allure disparaît du graphique */
+.card--gpx.gpx-no-pacing .gpx-legend-pace { display: none; }
+
+/* Interrupteur (switch) */
+.gpx-switch {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  cursor: pointer;
+}
+.gpx-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.gpx-switch-track {
+  width: 40px;
+  height: 23px;
+  border-radius: var(--ds-sys-shape-corner-full);
+  background: var(--ds-sys-color-outline);
+  transition: background var(--ds-sys-motion-duration-medium) var(--ds-sys-motion-easing-standard);
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+}
+.gpx-switch-thumb {
+  width: 19px;
+  height: 19px;
+  border-radius: var(--ds-sys-shape-corner-full);
+  background: #fff;
+  box-shadow: var(--ds-sys-elevation-1);
+  transition: transform var(--ds-sys-motion-duration-medium) var(--ds-sys-motion-easing-standard);
+}
+.gpx-switch input:checked + .gpx-switch-track { background: var(--ds-sys-color-primary); }
+.gpx-switch input:checked + .gpx-switch-track .gpx-switch-thumb { transform: translateX(17px); }
+.gpx-switch input:focus-visible + .gpx-switch-track {
+  outline: 2px solid var(--ds-sys-color-primary);
+  outline-offset: 2px;
+}
+
 /* ---- Plein écran ------------------------------------------------------- */
 /* Bouton bascule plein écran (à gauche du bouton favori) */
 .gpx-fs-btn {
@@ -1090,6 +1335,9 @@ select.input {
   z-index: calc(var(--ds-sys-z-modal, 1000) + 1);
   margin: 0;
   overflow: auto;
+  /* La popup ne dépasse jamais la hauteur de la page (marge de 16 px autour) ;
+     dvh suit le viewport réel même quand la barre d'adresse mobile bouge. */
+  max-height: calc(100dvh - 32px);
   transition: top var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized),
               left var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized),
               width var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized),
@@ -1102,54 +1350,69 @@ select.input {
 .card--gpx.is-fullscreen .gpx-fs-ico-open { display: none; }
 .card--gpx.is-fullscreen .gpx-fs-ico-close { display: block; }
 
-/* Réorganisation du contenu sur toute la largeur */
-.card--gpx.is-fullscreen {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(280px, 28vw, 380px);
-  grid-template-rows: auto auto auto 1fr auto;
-  grid-template-areas:
-    "head    stats"
-    "switch  time"
-    "chart   split"
-    "chart   splits"
-    "chart   note";
-  column-gap: var(--ds-sys-spacing-28);
-  row-gap: var(--ds-sys-spacing-16);
-  align-content: start;
-}
-.card--gpx.is-fullscreen .card-head    { grid-area: head; }
-.card--gpx.is-fullscreen .gpx-stats    { grid-area: stats; align-self: start; }
-.card--gpx.is-fullscreen .gpx-view-switch { grid-area: switch; align-self: start; }
-.card--gpx.is-fullscreen .gpx-chart    { grid-area: chart; min-height: 0; display: flex; flex-direction: column; }
-.card--gpx.is-fullscreen .gpx-map      { grid-area: chart; min-height: 0; height: 100%; }
-.card--gpx.is-fullscreen .gpx-time-field { grid-area: time; align-self: start; }
-.card--gpx.is-fullscreen .gpx-split    { grid-area: split; align-self: start; }
-.card--gpx.is-fullscreen .gpx-splits   { grid-area: splits; align-self: start; }
-.card--gpx.is-fullscreen .note         { grid-area: note; align-self: end; }
-.card--gpx.is-fullscreen .gpx-drop     { display: none; }
+/* Wrappers de colonnes : neutres en mode normal (la carte reste empilée) */
+.gpx-col { display: contents; }
 
-/* En plein écran le graphe occupe toute la hauteur dispo */
+/* Plein écran : 2 colonnes — graphique FIXE à gauche, infos SCROLLABLES à droite.
+   La card elle-même ne scrolle pas ; seule la colonne de droite déborde/scrolle,
+   donc le graphique de gauche garde toujours sa taille (jamais déformé). */
+.card--gpx.is-fullscreen {
+  display: flex;
+  flex-direction: row;
+  gap: var(--ds-sys-spacing-28);
+  overflow: hidden;
+}
+.card--gpx.is-fullscreen .gpx-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-sys-spacing-16);
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.card--gpx.is-fullscreen .gpx-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-sys-spacing-16);
+  width: clamp(280px, 28vw, 380px);
+  flex: none;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: var(--ds-sys-spacing-4);
+}
+.card--gpx.is-fullscreen .gpx-col-right > * { flex: none; }   /* sections non étirées */
+.card--gpx.is-fullscreen .gpx-chart {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.card--gpx.is-fullscreen .gpx-map { flex: 1; min-height: 0; height: auto; }
+.card--gpx.is-fullscreen .gpx-drop { display: none; }
+
+/* En plein écran le graphe occupe toute la hauteur dispo de la colonne gauche */
 .card--gpx.is-fullscreen .gpx-chart-inner { flex: 1; min-height: 0; }
 .card--gpx.is-fullscreen .gpx-plot,
 .card--gpx.is-fullscreen .gpx-axis-y { height: auto; }
-/* En mode carte, on masque bien le graphe (priorité sur la règle is-fullscreen) */
+/* En mode carte, on masque le graphe et la carte prend toute la colonne gauche */
 .card--gpx.is-fullscreen.is-map .gpx-chart { display: none; }
-.card--gpx.is-fullscreen.is-map .gpx-map { display: block; }
+.card--gpx.is-fullscreen.is-map .gpx-map { display: flex; }
 
 @media (max-width: 600px) {
-  .card--gpx.is-fullscreen {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto minmax(220px, 1fr) auto auto auto auto;
-    grid-template-areas:
-      "head"
-      "stats"
-      "switch"
-      "chart"
-      "time"
-      "split"
-      "splits"
-      "note";
+  /* Sur mobile l'écran est trop étroit pour 2 colonnes : on empile et c'est la
+     card qui scrolle (colonnes en pleine largeur). */
+  .card--gpx.is-fullscreen { flex-direction: column; overflow-y: auto; }
+  .card--gpx.is-fullscreen .gpx-col-left,
+  .card--gpx.is-fullscreen .gpx-col-right {
+    width: auto;
+    flex: none;
+    overflow: visible;
+    min-height: 0;
   }
+  .card--gpx.is-fullscreen .gpx-chart { flex: none; }
+  .card--gpx.is-fullscreen .gpx-chart-inner { min-height: 240px; }
 }
 
 /* États vide (skeleton) vs rempli */
