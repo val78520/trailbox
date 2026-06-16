@@ -87,6 +87,23 @@
   --ds-sys-color-on-inverse-surface-dim:     var(--ds-ref-white-50);
   --ds-sys-color-on-inverse-surface-muted:   var(--ds-ref-white-45);
   --ds-sys-color-inverse-outline:            var(--ds-ref-white-12);
+  --ds-sys-color-inverse-surface-container:  var(--ds-ref-white-12); /* pastille sur surface sombre */
+  --ds-sys-color-on-inverse-surface-secondary: var(--ds-ref-white-82); /* texte secondaire sur surface sombre */
+
+  /* Placeholders / chargement */
+  --ds-sys-color-surface-shimmer:    var(--ds-ref-licorice-05); /* reflet skeleton / aire fantôme */
+
+
+  /* ==========================================================================
+     2. SYSTEM — Graisses typographiques (rôles)
+     Seule couche que les composants ont le droit de lire pour le font-weight.
+     ====================================================================== */
+  --ds-sys-type-weight-regular:   var(--ds-ref-weight-regular);
+  --ds-sys-type-weight-medium:    var(--ds-ref-weight-medium);
+  --ds-sys-type-weight-semibold:  var(--ds-ref-weight-semibold);
+  --ds-sys-type-weight-bold:      var(--ds-ref-weight-bold);
+  --ds-sys-type-weight-extrabold: var(--ds-ref-weight-extrabold);
+  --ds-sys-type-weight-black:     var(--ds-ref-weight-black);
 
 
   /* ==========================================================================
