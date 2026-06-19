@@ -46,6 +46,7 @@
       <a href="#concept">Le coureur</a>
     </nav>
     <div class="nav-cta">
+      <div id="nav-auth"></div>
       <a class="btn btn--ghost" href="#concept">Le concept</a>
       <a class="btn btn--primary" href="#outils">Ouvrir la boîte</a>
     </div>
@@ -714,6 +715,58 @@
   </div>
 </footer>
 
+<!-- AUTH OVERLAY + MODAL -->
+<div id="auth-overlay" hidden></div>
+
+<div id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" hidden>
+  <button class="auth-close" id="auth-close" aria-label="Fermer">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+
+  <div class="auth-brand" aria-hidden="true">
+    <svg width="38" height="38" viewBox="0 0 40 40">
+      <rect width="40" height="40" rx="11" fill="#002FA7"/>
+      <path d="M6.5 29.5 L15 15.5 L20.5 22.5 L26 12 L33.5 29.5 Z" fill="#fff"/>
+      <circle cx="26" cy="12" r="2.1" fill="#002FA7"/>
+    </svg>
+  </div>
+
+  <h2 class="auth-title" id="auth-modal-title">Trail&nbsp;<span>Box</span></h2>
+
+  <div class="auth-tabs" role="tablist">
+    <button class="auth-tab" id="auth-tab-login"  role="tab" aria-selected="true">Connexion</button>
+    <button class="auth-tab" id="auth-tab-signup" role="tab" aria-selected="false">Créer un compte</button>
+  </div>
+
+  <p class="auth-msg" id="auth-msg" role="alert" hidden></p>
+
+  <form class="auth-form" id="auth-form-login" novalidate>
+    <div class="field">
+      <label for="login-email">Email</label>
+      <input class="input" type="email" id="login-email" placeholder="toi@example.com" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="login-password">Mot de passe</label>
+      <input class="input" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+    </div>
+    <button class="btn btn--primary auth-submit" type="submit">Se connecter</button>
+  </form>
+
+  <form class="auth-form" id="auth-form-signup" novalidate hidden>
+    <div class="field">
+      <label for="signup-email">Email</label>
+      <input class="input" type="email" id="signup-email" placeholder="toi@example.com" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="signup-password">Mot de passe</label>
+      <input class="input" type="password" id="signup-password" placeholder="8 caractères minimum" required autocomplete="new-password" minlength="8">
+    </div>
+    <button class="btn btn--primary auth-submit" type="submit">Créer mon compte</button>
+  </form>
+</div>
+
 <!-- SNACKBAR -->
 <div class="snackbar" id="snackbar" role="status" aria-live="polite" aria-hidden="true">
   <div class="snackbar-icon" aria-hidden="true">
@@ -727,6 +780,8 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<script src="auth.js" defer></script>
 <script src="app.js" defer></script>
 </body>
 </html>

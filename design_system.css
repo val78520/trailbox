@@ -39,6 +39,7 @@
   --ds-ref-licorice-12:     rgba(21, 21, 26, .12);
   --ds-ref-klein-28:        rgba(0, 47, 167, .28);
   --ds-ref-black-10:        rgba(0, 0, 0, .10);
+  --ds-ref-black-50:        rgba(0, 0, 0, .50);
 
   /* ==========================================================================
      1. REFERENCE — Typographie
@@ -92,6 +93,7 @@
 
   /* Placeholders / chargement */
   --ds-sys-color-surface-shimmer:    var(--ds-ref-licorice-05); /* reflet skeleton / aire fantôme */
+  --ds-sys-color-overlay:            var(--ds-ref-black-50);    /* fond de modal                  */
 
 
   /* ==========================================================================

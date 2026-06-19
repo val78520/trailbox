@@ -1460,3 +1460,151 @@ select.input {
   .reveal { opacity: 1; transform: none; }
   html { scroll-behavior: auto; }
 }
+
+/* ============================================================================
+   AUTH — Overlay, Modal, Nav avatar
+   ========================================================================== */
+
+/* ---- Overlay -------------------------------------------------------------- */
+#auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--ds-sys-color-overlay);
+  z-index: 200;
+  animation: fade-overlay var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-standard);
+}
+@keyframes fade-overlay { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---- Modal ---------------------------------------------------------------- */
+#auth-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 201;
+  background: var(--ds-sys-color-surface);
+  border-radius: var(--ds-sys-shape-corner-xl);
+  padding: var(--ds-sys-spacing-36) var(--ds-sys-spacing-36) var(--ds-sys-spacing-32);
+  width: min(420px, calc(100vw - var(--ds-sys-spacing-48)));
+  box-shadow: var(--ds-sys-elevation-2);
+  animation: modal-in var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized);
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+.auth-close {
+  position: absolute;
+  top: var(--ds-sys-spacing-16);
+  right: var(--ds-sys-spacing-16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--ds-sys-shape-corner-full);
+  color: var(--ds-sys-color-on-surface-variant);
+  cursor: pointer;
+  transition: background var(--ds-sys-motion-duration-fast);
+}
+.auth-close:hover { background: var(--ds-sys-color-surface-variant); }
+
+.auth-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--ds-sys-spacing-12);
+}
+
+.auth-title {
+  font-size: var(--ds-sys-type-size-title-lg);
+  font-weight: var(--ds-sys-type-weight-bold);
+  letter-spacing: var(--ds-sys-type-tracking-tight);
+  text-align: center;
+  margin-bottom: var(--ds-sys-spacing-24);
+}
+.auth-title span { color: var(--ds-sys-color-primary); }
+
+/* ---- Tabs ----------------------------------------------------------------- */
+.auth-tabs {
+  display: flex;
+  background: var(--ds-sys-color-surface-variant);
+  border-radius: var(--ds-sys-shape-corner-md);
+  padding: var(--ds-sys-spacing-3);
+  gap: var(--ds-sys-spacing-3);
+  margin-bottom: var(--ds-sys-spacing-24);
+}
+.auth-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: var(--ds-sys-shape-corner-sm);
+  padding: var(--ds-sys-spacing-9) var(--ds-sys-spacing-12);
+  font-family: inherit;
+  font-size: var(--ds-sys-type-size-label-lg);
+  font-weight: var(--ds-sys-type-weight-medium);
+  color: var(--ds-sys-color-on-surface-variant);
+  cursor: pointer;
+  transition: background var(--ds-sys-motion-duration-fast),
+              color var(--ds-sys-motion-duration-fast),
+              box-shadow var(--ds-sys-motion-duration-fast);
+}
+.auth-tab[aria-selected="true"] {
+  background: var(--ds-sys-color-surface);
+  color: var(--ds-sys-color-on-surface);
+  font-weight: var(--ds-sys-type-weight-semibold);
+  box-shadow: var(--ds-sys-elevation-segment);
+}
+
+/* ---- Message (erreur / succès) ------------------------------------------- */
+.auth-msg {
+  font-size: var(--ds-sys-type-size-label-lg);
+  line-height: var(--ds-sys-type-line-lead);
+  border-radius: var(--ds-sys-shape-corner-lg);
+  padding: var(--ds-sys-spacing-10) var(--ds-sys-spacing-14);
+  margin-bottom: var(--ds-sys-spacing-18);
+  color: var(--ds-sys-color-error);
+  background: color-mix(in srgb, var(--ds-sys-color-error) 10%, transparent);
+}
+.auth-msg[data-type="success"] {
+  color: var(--ds-sys-color-primary);
+  background: var(--ds-sys-color-primary-container);
+}
+
+/* ---- Form ----------------------------------------------------------------- */
+.auth-form { display: flex; flex-direction: column; gap: var(--ds-sys-spacing-16); }
+
+.auth-submit {
+  width: 100%;
+  justify-content: center;
+  padding-top: var(--ds-sys-spacing-13);
+  padding-bottom: var(--ds-sys-spacing-13);
+  font-size: var(--ds-sys-type-size-body-md);
+  margin-top: var(--ds-sys-spacing-4);
+}
+.auth-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* ---- Nav — avatar connecté ----------------------------------------------- */
+#nav-auth {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-8);
+}
+
+.nav-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--ds-sys-shape-corner-full);
+  background: var(--ds-sys-color-primary);
+  color: var(--ds-sys-color-on-primary);
+  font-size: var(--ds-sys-type-size-label-xs);
+  font-weight: var(--ds-sys-type-weight-bold);
+  letter-spacing: var(--ds-sys-type-tracking-wide);
+  cursor: default;
+  flex-shrink: 0;
+}
