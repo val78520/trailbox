@@ -57,7 +57,7 @@
 <section class="hero">
   <div class="wrap">
     <span class="eyebrow reveal">Dans la boîte, tout pour le trail</span>
-    <h1 class="reveal d1">Arrête de calculer ton allure sur un coin de nappe.</h1>
+    <h1 class="reveal d1" id="hero-baseline">Arrête de calculer ton allure sur un coin de nappe.</h1>
     <p class="hero-sub reveal d2">Allure, pente, temps de course. Tu rentres tes chiffres, on te sort le résultat. Pas de pub, pas de tuto de 12 minutes, pas de tableur Excel de 2009.</p>
     <div class="hero-actions reveal d3">
       <a class="btn btn--primary btn--lg" href="#outils">Ouvrir la boîte</a>
@@ -755,6 +755,16 @@
   </form>
 
   <form class="auth-form" id="auth-form-signup" novalidate hidden>
+    <div class="field-row">
+      <div class="field">
+        <label for="signup-firstname">Prénom</label>
+        <input class="input" type="text" id="signup-firstname" placeholder="Camille" required autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label for="signup-lastname">Nom</label>
+        <input class="input" type="text" id="signup-lastname" placeholder="Dupont" required autocomplete="family-name">
+      </div>
+    </div>
     <div class="field">
       <label for="signup-email">Email</label>
       <input class="input" type="email" id="signup-email" placeholder="toi@example.com" required autocomplete="email">

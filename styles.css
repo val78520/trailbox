@@ -1451,7 +1451,15 @@ select.input {
   .cards { column-count: 1; max-width: 460px; margin: 0 auto; }
   .wrap { padding: 0 var(--ds-sys-spacing-20); }
   .hero { padding-top: var(--ds-sys-spacing-64); }
-  .nav-cta .btn--ghost { display: none; }
+  /* Masque uniquement le lien décoratif « Le concept » (enfant direct),
+     pas les boutons d'auth générés dans #nav-auth (Se connecter / déconnecter). */
+  .nav-cta > .btn--ghost { display: none; }
+  /* Header mobile = marque + contrôle d'auth. Le CTA « Ouvrir la boîte »
+     reste visible dans le hero juste en dessous. */
+  .nav-cta > .btn--primary { display: none; }
+  /* Déconnexion en icône seule sur mobile pour préserver la place dans le header. */
+  .btn-signout .btn-label { display: none; }
+  .btn-signout { padding-left: var(--ds-sys-spacing-9); padding-right: var(--ds-sys-spacing-9); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1576,6 +1584,8 @@ select.input {
 /* ---- Form ----------------------------------------------------------------- */
 .auth-form { display: flex; flex-direction: column; gap: var(--ds-sys-spacing-16); }
 .auth-form[hidden] { display: none; }
+.field-row { display: flex; gap: var(--ds-sys-spacing-12); }
+.field-row .field { flex: 1; min-width: 0; }
 
 .auth-submit {
   width: 100%;
@@ -1609,3 +1619,7 @@ select.input {
   cursor: default;
   flex-shrink: 0;
 }
+
+/* Bouton de déconnexion : icône + libellé (libellé masqué sur mobile, cf. media 600px) */
+.btn-signout { gap: var(--ds-sys-spacing-8); flex-shrink: 0; }
+.btn-icon { display: block; flex-shrink: 0; }

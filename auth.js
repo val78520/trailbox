@@ -60,16 +60,38 @@ function hideMsg() {
 
 /* ---- Nav ------------------------------------------------------------------ */
 function updateNav(user) {
+  const baseline = document.getElementById('hero-baseline');
+
   if (user) {
-    const initials = user.email.slice(0, 2).toUpperCase();
+    const firstName = user.user_metadata?.first_name;
+    const lastName  = user.user_metadata?.last_name;
+    const initials  = firstName && lastName
+      ? (firstName[0] + lastName[0]).toUpperCase()
+      : user.email.slice(0, 2).toUpperCase();
+
     navAuth.innerHTML = `
       <span class="nav-avatar" title="${user.email}">${initials}</span>
-      <button class="btn btn--ghost" id="btn-signout">Se déconnecter</button>
+      <button class="btn btn--ghost btn-signout" id="btn-signout" aria-label="Se déconnecter">
+        <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span class="btn-label">Se déconnecter</span>
+      </button>
     `;
     document.getElementById('btn-signout').addEventListener('click', handleSignOut);
+
+    if (baseline && firstName) {
+      baseline.textContent = `Bienvenu.e ${firstName}, arrête de calculer ton allure sur un coin de nappe.`;
+    }
   } else {
     navAuth.innerHTML = `<button class="btn btn--ghost" id="btn-login">Se connecter</button>`;
     document.getElementById('btn-login').addEventListener('click', () => openModal('login'));
+
+    if (baseline) {
+      baseline.textContent = 'Arrête de calculer ton allure sur un coin de nappe.';
+    }
   }
 }
 
@@ -103,6 +125,12 @@ async function handleSignUp(e) {
   const { data, error } = await sb.auth.signUp({
     email:    document.getElementById('signup-email').value,
     password: document.getElementById('signup-password').value,
+    options: {
+      data: {
+        first_name: document.getElementById('signup-firstname').value.trim(),
+        last_name:  document.getElementById('signup-lastname').value.trim(),
+      },
+    },
   });
 
   btn.disabled    = false;
