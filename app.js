@@ -308,6 +308,39 @@ function saveFavorites(list) {
 const toolsGrid = document.getElementById('tools-grid');
 const favoritesGrid = document.getElementById('favorites-grid');
 
+/* ---- Accès réservé aux comptes ------------------------------------------- */
+/* Outils visibles uniquement pour un utilisateur connecté. */
+const GATED_TOOLS = ['gpx'];
+let isAuthenticated = false;
+
+/* Un outil est disponible s'il n'est pas réservé, ou si on est connecté. */
+function isToolAvailable(id) {
+  return !GATED_TOOLS.includes(id) || isAuthenticated;
+}
+
+/* Carte d'incitation à la création de compte : créée à la demande,
+   jamais favorisable, toujours en dernière position, masquée si connecté. */
+let signupCtaCard = null;
+function getSignupCta() {
+  if (signupCtaCard) return signupCtaCard;
+  const el = document.createElement('article');
+  el.className = 'card card--cta';
+  el.id = 'signup-cta';
+  el.innerHTML = `
+    <div class="card-head">
+      <span class="card-num">Compte gratuit</span>
+      <h3>Débloque toute la boîte</h3>
+      <p class="cta-text">Crée un compte gratuit pour accéder à plus de calculateurs — à commencer par l'analyse de tracé GPX. D'autres outils arrivent.</p>
+    </div>
+    <button class="btn cta-btn" type="button">Créer mon compte</button>
+  `;
+  el.querySelector('.cta-btn').addEventListener('click', () => {
+    if (typeof openModal === 'function') openModal('signup');
+  });
+  signupCtaCard = el;
+  return el;
+}
+
 /* Map id outil → carte (toutes les cartes, peu importe où elles sont) */
 const allCards = new Map();
 document.querySelectorAll('.card[data-tool]').forEach(card => {
@@ -334,7 +367,14 @@ function setButtonState(card, isFav) {
 }
 
 function renderFavorites() {
-  const favs = loadFavorites();
+  /* On ignore les favoris pointant vers un outil indisponible (réservé + déconnecté) */
+  const favs = loadFavorites().filter(isToolAvailable);
+
+  /* Visibilité des outils réservés selon l'état de connexion */
+  GATED_TOOLS.forEach(id => {
+    const card = allCards.get(id);
+    if (card) card.hidden = !isAuthenticated;
+  });
 
   /* Place les cartes favorites dans la grille favoris, dans l'ordre stocké */
   favs.forEach(id => {
@@ -354,6 +394,11 @@ function renderFavorites() {
       if (card) toolsGrid.appendChild(card);
     });
 
+  /* Carte d'incitation : toujours en dernier, supprimée une fois connecté */
+  const cta = getSignupCta();
+  if (isAuthenticated) cta.remove();
+  else toolsGrid.appendChild(cta);
+
   /* Skeleton si aucun favori */
   const existingSkel = document.getElementById('fav-skeleton');
   if (favs.length === 0) {
@@ -365,6 +410,12 @@ function renderFavorites() {
   /* État des boutons */
   allCards.forEach((card, id) => setButtonState(card, favs.includes(id)));
 }
+
+/* Réagit aux changements de session (émis par auth.js) */
+document.addEventListener('trailbox:auth', e => {
+  isAuthenticated = !!(e.detail && e.detail.user);
+  renderFavorites();
+});
 
 function toggleFavorite(id) {
   const favs = loadFavorites();

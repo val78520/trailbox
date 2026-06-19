@@ -199,6 +199,31 @@ body {
   width: 100%;
 }
 .card:hover { transform: translateY(-4px); box-shadow: var(--ds-sys-elevation-2); }
+/* Une carte masquée (outil réservé non connecté) ne doit pas occuper la grille */
+.card[hidden] { display: none; }
+
+/* Carte d'incitation à la création de compte (fond bleu Klein) */
+.card--cta {
+  background: var(--ds-sys-color-primary);
+  color: var(--ds-sys-color-on-primary);
+  justify-content: space-between;
+  gap: var(--ds-sys-spacing-24);
+}
+.card--cta .card-num { color: var(--ds-sys-color-on-primary); opacity: .7; }
+.card--cta h3 { color: var(--ds-sys-color-on-primary); }
+.card--cta .cta-text {
+  font-size: var(--ds-sys-type-size-card-joke);
+  line-height: var(--ds-sys-type-line-lead);
+  color: var(--ds-sys-color-on-primary);
+  opacity: .9;
+}
+.card--cta .cta-btn {
+  align-self: flex-start;
+  background: var(--ds-sys-color-on-primary);
+  color: var(--ds-sys-color-primary);
+  font-weight: var(--ds-sys-type-weight-bold);
+}
+.card--cta .cta-btn:hover { transform: translateY(-1px); box-shadow: var(--ds-sys-elevation-2); }
 .card-head { display: flex; flex-direction: column; gap: var(--ds-sys-spacing-8); }
 .card-num {
   font-size: var(--ds-sys-type-size-body-sm);

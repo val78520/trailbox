@@ -10,7 +10,8 @@
 
 - **Quoi** : « la boîte à outils du traileur » — une page web qui regroupe 9 calculateurs
   (allure, pente, temps de course, GAP, VO2max, VMA, allures de course, profil GPX…).
-- **Promesse** : on rentre des chiffres, on sort un résultat. **Pas de pub, pas d'inscription, pas de tuto.**
+- **Promesse** : on rentre des chiffres, on sort un résultat. **Pas de pub, pas de tuto.**
+  Certains outils avancés (ex. analyse de tracé GPX) sont réservés aux utilisateurs connectés.
   L'esprit est léger et rapide — toute contribution doit le rester.
 - **Langue** : tout en **français**, y compris le ton (décalé, direct, un brin d'humour).
 - **Public** : coureurs sur mobile et desktop. **Mobile-first obligatoire.**

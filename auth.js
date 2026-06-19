@@ -93,6 +93,9 @@ function updateNav(user) {
       baseline.textContent = 'Arrête de calculer ton allure sur un coin de nappe.';
     }
   }
+
+  /* Notifie le reste de l'app (outils réservés, carte d'incitation…) */
+  document.dispatchEvent(new CustomEvent('trailbox:auth', { detail: { user } }));
 }
 
 /* ---- Actions auth --------------------------------------------------------- */
