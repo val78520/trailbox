@@ -1575,6 +1575,7 @@ select.input {
 
 /* ---- Form ----------------------------------------------------------------- */
 .auth-form { display: flex; flex-direction: column; gap: var(--ds-sys-spacing-16); }
+.auth-form[hidden] { display: none; }
 
 .auth-submit {
   width: 100%;
