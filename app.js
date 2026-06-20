@@ -374,6 +374,12 @@ const favoritesGrid = document.getElementById('favorites-grid');
 /* Outils visibles uniquement pour un utilisateur connecté. */
 const GATED_TOOLS = ['gpx'];
 let isAuthenticated = false;
+/* L'état de session est asynchrone (Supabase restaure la session après le
+   chargement). Tant qu'il n'est pas connu, on n'affiche pas la carte
+   d'incitation : sinon elle « flashe » chez un membre déjà connecté,
+   visible notamment quand l'URL porte une ancre (#outils) qui scrolle
+   directement sur la grille au chargement. */
+let authResolved = false;
 
 /* Un outil est disponible s'il n'est pas réservé, ou si on est connecté. */
 function isToolAvailable(id) {
@@ -456,10 +462,12 @@ function renderFavorites() {
       if (card) toolsGrid.appendChild(card);
     });
 
-  /* Carte d'incitation : toujours en dernier, supprimée une fois connecté */
+  /* Carte d'incitation : en dernier, uniquement si l'état d'auth est connu
+     ET que l'utilisateur est déconnecté. Tant que la session n'est pas
+     résolue, on ne l'affiche pas (évite le flash chez un membre connecté). */
   const cta = getSignupCta();
-  if (isAuthenticated) cta.remove();
-  else toolsGrid.appendChild(cta);
+  if (authResolved && !isAuthenticated) toolsGrid.appendChild(cta);
+  else cta.remove();
 
   /* Skeleton si aucun favori */
   const existingSkel = document.getElementById('fav-skeleton');
@@ -475,10 +483,13 @@ function renderFavorites() {
 
 /* Réagit aux changements de session (émis par auth.js) */
 let wasAuthenticated = false;
+let authSeq = 0; // garde anti-race : seul le dernier évènement peut re-rendre
 document.addEventListener('trailbox:auth', async e => {
+  const seq     = ++authSeq;
   const user    = e.detail && e.detail.user;
   const nowAuth = !!user;
   isAuthenticated = nowAuth;
+  authResolved    = true;
 
   if (!nowAuth) {
     currentUserId = null;
@@ -492,9 +503,17 @@ document.addEventListener('trailbox:auth', async e => {
 
   if (nowAuth) {
     await syncFavoritesOnLogin(user);
-    renderFavorites(); // re-rendu une fois la fusion cloud terminée
+    if (seq !== authSeq) return;   // un évènement plus récent a pris la main
+    renderFavorites();             // re-rendu une fois la fusion cloud terminée
   }
 });
+
+/* Filet de sécurité : si aucun évènement d'auth n'arrive (ex. échec de
+   chargement de Supabase), on bascule en « anonyme résolu » pour que la
+   carte d'incitation finisse par s'afficher au lieu de rester masquée. */
+setTimeout(() => {
+  if (!authResolved) { authResolved = true; renderFavorites(); }
+}, 4000);
 
 function toggleFavorite(id) {
   const favs = loadFavorites();
