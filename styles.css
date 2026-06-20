@@ -1648,3 +1648,148 @@ select.input {
 /* Bouton de déconnexion : icône + libellé (libellé masqué sur mobile, cf. media 600px) */
 .btn-signout { gap: var(--ds-sys-spacing-8); flex-shrink: 0; }
 .btn-icon { display: block; flex-shrink: 0; }
+
+
+/* ============================================================================
+   COOKIES — Bannière de consentement (RGPD)
+   ========================================================================== */
+.cookie-banner {
+  position: fixed;
+  left: var(--ds-sys-spacing-16);
+  right: var(--ds-sys-spacing-16);
+  bottom: var(--ds-sys-spacing-16);
+  z-index: var(--ds-sys-z-sticky);
+  display: flex;
+  justify-content: center;
+  animation: cookie-rise var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-emphasized);
+}
+.cookie-banner[hidden] { display: none; }
+
+.cookie-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-20);
+  width: 100%;
+  max-width: var(--ds-sys-size-container-max);
+  padding: var(--ds-sys-spacing-16) var(--ds-sys-spacing-20);
+  background: var(--ds-sys-color-surface);
+  color: var(--ds-sys-color-on-surface);
+  border: 1px solid var(--ds-sys-color-outline);
+  border-radius: var(--ds-sys-shape-corner-lg);
+  box-shadow: var(--ds-sys-elevation-2);
+}
+
+.cookie-banner__text {
+  margin: 0;
+  font-size: var(--ds-sys-type-size-body-sm);
+  line-height: var(--ds-sys-type-line-lead);
+  color: var(--ds-sys-color-on-surface-variant);
+}
+
+.cookie-banner__text a {
+  color: var(--ds-sys-color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cookie-banner__text a:hover { color: var(--ds-sys-color-primary-hover); }
+
+.cookie-banner__actions {
+  display: flex;
+  gap: var(--ds-sys-spacing-8);
+  flex-shrink: 0;
+}
+.cookie-banner__btn { white-space: nowrap; }
+
+@keyframes cookie-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Utilitaire : visible pour les lecteurs d'écran, masqué visuellement. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ============================================================================
+   PAGE LÉGALE — Politique de confidentialité / cookies
+   ========================================================================== */
+.legal { padding: var(--ds-sys-spacing-64) 0 var(--ds-sys-spacing-96); }
+.legal-inner { max-width: 760px; }
+
+.legal .eyebrow { margin-bottom: var(--ds-sys-spacing-12); }
+.legal h1 {
+  font-size: var(--ds-sys-type-size-headline-lg);
+  line-height: var(--ds-sys-type-line-snug);
+  letter-spacing: var(--ds-sys-type-tracking-tight);
+  color: var(--ds-sys-color-on-surface);
+  margin: 0 0 var(--ds-sys-spacing-8);
+}
+.legal-updated {
+  font-size: var(--ds-sys-type-size-label-md);
+  color: var(--ds-sys-color-on-surface-variant);
+  margin: 0 0 var(--ds-sys-spacing-48);
+}
+.legal h2 {
+  font-size: var(--ds-sys-type-size-title-lg);
+  letter-spacing: var(--ds-sys-type-tracking-tight);
+  color: var(--ds-sys-color-on-surface);
+  margin: var(--ds-sys-spacing-48) 0 var(--ds-sys-spacing-12);
+}
+.legal h3 {
+  font-size: var(--ds-sys-type-size-body-lg);
+  color: var(--ds-sys-color-on-surface);
+  margin: var(--ds-sys-spacing-24) 0 var(--ds-sys-spacing-8);
+}
+.legal p,
+.legal li {
+  font-size: var(--ds-sys-type-size-body-md);
+  line-height: var(--ds-sys-type-line-lead);
+  color: var(--ds-sys-color-on-surface-variant);
+}
+.legal p { margin: 0 0 var(--ds-sys-spacing-16); }
+.legal ul { margin: 0 0 var(--ds-sys-spacing-16); padding-left: var(--ds-sys-spacing-20); }
+.legal li { margin-bottom: var(--ds-sys-spacing-8); }
+.legal a {
+  color: var(--ds-sys-color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.legal a:hover { color: var(--ds-sys-color-primary-hover); }
+.legal strong { color: var(--ds-sys-color-on-surface); font-weight: var(--ds-sys-type-weight-semibold); }
+
+/* Tableau des cookies */
+.legal-table-wrap { overflow-x: auto; margin: 0 0 var(--ds-sys-spacing-16); }
+.legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ds-sys-type-size-body-sm);
+}
+.legal-table th,
+.legal-table td {
+  text-align: left;
+  padding: var(--ds-sys-spacing-12) var(--ds-sys-spacing-14);
+  border-bottom: 1px solid var(--ds-sys-color-outline);
+  vertical-align: top;
+  color: var(--ds-sys-color-on-surface-variant);
+}
+.legal-table th {
+  font-weight: var(--ds-sys-type-weight-semibold);
+  color: var(--ds-sys-color-on-surface);
+  white-space: nowrap;
+}
+.legal-table caption { text-align: left; margin-bottom: var(--ds-sys-spacing-8); }
+
+@media (max-width: 560px) {
+  .cookie-banner__inner { flex-direction: column; align-items: stretch; }
+  .cookie-banner__actions { justify-content: flex-end; }
+}

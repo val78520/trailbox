@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-Z7D9JWV9Z5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-Z7D9JWV9Z5');
-</script>
+<!-- Google Analytics : chargé uniquement après consentement (voir cookies.js). -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trail Box — La boîte à outils du traileur</title>
@@ -708,6 +700,8 @@
           <a href="#concept">Le concept</a>
           <a href="#concept">Le coureur</a>
           <a href="mailto:val.bertinetti@gmail.com">Contact</a>
+          <a href="confidentialite.html">Confidentialité &amp; cookies</a>
+          <a href="#" data-cookie-action="manage">Gérer les cookies</a>
         </div>
       </div>
     </div>
@@ -791,6 +785,22 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<!-- BANNIÈRE COOKIES (RGPD / CNIL) -->
+<div id="cookie-banner" class="cookie-banner" role="region" aria-label="Gestion des cookies" hidden>
+  <div class="cookie-banner__inner">
+    <p class="cookie-banner__text">
+      On utilise un cookie de mesure d'audience (Google&nbsp;Analytics) pour comprendre
+      comment Trail Box est utilisé. Rien n'est déposé sans ton accord.
+      <a href="confidentialite.html">En savoir plus</a>.
+    </p>
+    <div class="cookie-banner__actions">
+      <button type="button" class="btn btn--ghost cookie-banner__btn" data-cookie-action="decline">Refuser</button>
+      <button type="button" class="btn btn--primary cookie-banner__btn" data-cookie-action="accept">Accepter</button>
+    </div>
+  </div>
+</div>
+
+<script src="cookies.js" defer></script>
 <script src="auth.js" defer></script>
 <script src="app.js" defer></script>
 </body>
