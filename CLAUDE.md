@@ -5,6 +5,29 @@
 
 ---
 
+## 0. RGPD (règles impératives, toujours appliquées)
+
+> Ces règles priment sur tout le reste et s'appliquent à **chaque**
+> modification touchant aux données personnelles, sans avoir à être rappelées.
+
+- **Mise en conformité du code et de la doc** : si une modification touche à
+  des données personnelles ou à leur traitement (collecte, stockage, partage,
+  cookies/traceurs, consentement, durée de conservation, comptes utilisateurs,
+  services tiers…), le code **et** la documentation associée doivent être
+  réadaptés pour rester conformes : mise à jour de la politique de
+  confidentialité (`confidentialite.html`), de la bannière / gestion des
+  cookies (`cookies.js`), des mentions de consentement, etc. Signaler
+  explicitement ce qui a été ajusté.
+
+- **Validation avant impact** : si une telle modification a un impact visuel
+  notable ou modifie de façon importante l'interface ou l'expérience
+  utilisateur (ex. parcours de consentement, formulaires de collecte, bannière
+  cookies), **demander la validation du prompteur avant de l'appliquer**
+  (proposer l'approche / une description, puis attendre le feu vert). Les
+  ajustements mineurs et invisibles ne sont pas concernés.
+
+---
+
 ## 1. Principes de design
 
 - **Clarté avant esthétique** : si un choix visuel nuit à la compréhension, on le retire.
