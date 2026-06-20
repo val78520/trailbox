@@ -225,6 +225,23 @@ body {
 }
 .card--cta .cta-btn:hover { transform: translateY(-1px); box-shadow: var(--ds-sys-elevation-2); }
 .card-head { display: flex; flex-direction: column; gap: var(--ds-sys-spacing-8); }
+/* Badge premium discret — outils réservés aux membres connectés */
+.card-premium {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-5);
+  padding: var(--ds-sys-spacing-3) var(--ds-sys-spacing-8);
+  border-radius: var(--ds-sys-shape-corner-full);
+  background: var(--ds-sys-color-primary-container);
+  color: var(--ds-sys-color-primary);
+  font-size: var(--ds-sys-type-size-label-xs);
+  font-weight: var(--ds-sys-type-weight-bold);
+  letter-spacing: var(--ds-sys-type-tracking-caps-sm);
+  text-transform: uppercase;
+  line-height: var(--ds-sys-type-line-tight);
+}
+.card-premium svg { width: 11px; height: 11px; flex-shrink: 0; }
 .card-num {
   font-size: var(--ds-sys-type-size-body-sm);
   font-weight: var(--ds-sys-type-weight-bold);

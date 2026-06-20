@@ -409,11 +409,26 @@ function getSignupCta() {
   return el;
 }
 
+/* Badge discret « Membre » : signale visuellement les outils débloqués par
+   un compte. Injecté une fois sur les cartes réservées, suit GATED_TOOLS. */
+function injectPremiumBadge(card) {
+  const head = card.querySelector('.card-head');
+  if (!head || head.querySelector('.card-premium')) return;
+  const badge = document.createElement('span');
+  badge.className = 'card-premium';
+  badge.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.3 5.9 6.2.4-4.8 4 1.6 6-5.3-3.3-5.3 3.3 1.6-6-4.8-4 6.2-.4z"/></svg>Membre`;
+  head.insertBefore(badge, head.firstChild);
+}
+
 /* Map id outil → carte (toutes les cartes, peu importe où elles sont) */
 const allCards = new Map();
 document.querySelectorAll('.card[data-tool]').forEach(card => {
   allCards.set(card.dataset.tool, card);
   injectFavButton(card);
+});
+GATED_TOOLS.forEach(id => {
+  const card = allCards.get(id);
+  if (card) injectPremiumBadge(card);
 });
 
 function injectFavButton(card) {
