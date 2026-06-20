@@ -289,20 +289,82 @@ const SKELETON_HTML = `
   </div>
 `;
 
+// Liste blanche des ids d'outils (filtre les ids inconnus, ex. 'riegel' suite à la fusion 04+05).
+const VALID_TOOLS = new Set(['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures', 'course', 'gpx']);
+
+/* Nettoie une liste de favoris : ids connus, dédupliqués, ordre préservé. */
+function sanitizeFavorites(arr) {
+  if (!Array.isArray(arr)) return [];
+  const seen = new Set();
+  return arr.filter(x =>
+    typeof x === 'string' && VALID_TOOLS.has(x) && !seen.has(x) && seen.add(x)
+  );
+}
+
 function loadFavorites() {
   try {
     const raw = localStorage.getItem(FAV_KEY);
     if (!raw) return [];
-    const arr = JSON.parse(raw);
-    if (!Array.isArray(arr)) return [];
-    // Filtre les ids inconnus (ex. 'riegel' suite à la fusion 04+05).
-    const valid = new Set(['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures', 'course', 'gpx']);
-    return arr.filter(x => typeof x === 'string' && valid.has(x));
+    return sanitizeFavorites(JSON.parse(raw));
   } catch { return []; }
 }
 
 function saveFavorites(list) {
   try { localStorage.setItem(FAV_KEY, JSON.stringify(list)); } catch {}
+}
+
+/* ---- Synchronisation cloud (Supabase) ------------------------------------
+   Pour un utilisateur connecté, les favoris sont stockés dans la table
+   `user_favorites` (une ligne par utilisateur, tableau ordonné). Le
+   localStorage sert de miroir pour un rendu instantané et pour l'anonyme. */
+let currentUserId = null;
+
+/* Lit les favoris cloud. Renvoie un tableau, ou null si la lecture a échoué
+   (réseau / RLS) — distinct d'un tableau vide qui signifie « aucun favori ». */
+async function fetchCloudFavorites(userId) {
+  try {
+    const { data, error } = await sb
+      .from('user_favorites')
+      .select('tools')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    return sanitizeFavorites(data?.tools || []);
+  } catch (err) {
+    console.warn('[favoris] lecture cloud impossible', err);
+    return null;
+  }
+}
+
+/* Écrit (upsert) les favoris de l'utilisateur courant. Fire-and-forget. */
+async function pushCloudFavorites(userId, list) {
+  if (!userId) return false;
+  try {
+    const { error } = await sb
+      .from('user_favorites')
+      .upsert({ user_id: userId, tools: list, updated_at: new Date().toISOString() });
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.warn('[favoris] écriture cloud impossible', err);
+    return false;
+  }
+}
+
+/* À la connexion : fusionne les favoris épinglés hors-ligne avec le cloud
+   (le cloud fait foi, on ajoute les épingles locales non encore synchronisées),
+   met à jour le miroir local et pousse la fusion si elle diffère du cloud. */
+async function syncFavoritesOnLogin(user) {
+  currentUserId = user.id;
+  const cloud = await fetchCloudFavorites(user.id);
+  if (cloud === null) return; // échec réseau : on ne touche pas au local
+
+  const local  = loadFavorites();
+  const merged = sanitizeFavorites([...cloud, ...local]);
+  saveFavorites(merged);
+
+  const changed = merged.length !== cloud.length || merged.some((id, i) => id !== cloud[i]);
+  if (changed) await pushCloudFavorites(user.id, merged);
 }
 
 const toolsGrid = document.getElementById('tools-grid');
@@ -330,7 +392,7 @@ function getSignupCta() {
     <div class="card-head">
       <span class="card-num">Compte gratuit</span>
       <h3>Débloque toute la boîte</h3>
-      <p class="cta-text">Crée un compte gratuit pour accéder à plus de calculateurs — à commencer par l'analyse de tracé GPX. D'autres outils arrivent.</p>
+      <p class="cta-text">Crée un compte gratuit pour débloquer plus de calculateurs (l'analyse de tracé GPX) et retrouver tes favoris sur tous tes appareils. D'autres outils arrivent.</p>
     </div>
     <button class="btn cta-btn" type="button">Créer mon compte</button>
   `;
@@ -412,9 +474,26 @@ function renderFavorites() {
 }
 
 /* Réagit aux changements de session (émis par auth.js) */
-document.addEventListener('trailbox:auth', e => {
-  isAuthenticated = !!(e.detail && e.detail.user);
-  renderFavorites();
+let wasAuthenticated = false;
+document.addEventListener('trailbox:auth', async e => {
+  const user    = e.detail && e.detail.user;
+  const nowAuth = !!user;
+  isAuthenticated = nowAuth;
+
+  if (!nowAuth) {
+    currentUserId = null;
+    // Déconnexion réelle (≠ chargement anonyme) : on vide le miroir local
+    // pour ne pas laisser les favoris d'un compte sur un appareil partagé.
+    if (wasAuthenticated) saveFavorites([]);
+  }
+  wasAuthenticated = nowAuth;
+
+  renderFavorites(); // rendu immédiat : gating GPX + carte d'incitation
+
+  if (nowAuth) {
+    await syncFavoritesOnLogin(user);
+    renderFavorites(); // re-rendu une fois la fusion cloud terminée
+  }
 });
 
 function toggleFavorite(id) {
@@ -425,6 +504,8 @@ function toggleFavorite(id) {
   else { favs.splice(idx, 1); added = false; }
   saveFavorites(favs);
   renderFavorites();
+  // Connecté : on propage au cloud en arrière-plan (UI déjà à jour)
+  if (isAuthenticated && currentUserId) pushCloudFavorites(currentUserId, favs);
   if (added) {
     showSnackbar('Outil favorisé', "Il t'attend désormais en haut de page.");
   } else {
