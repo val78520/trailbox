@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<!-- Google Analytics : chargé uniquement après consentement (voir cookies.js). -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse de tracé — Trail Box</title>
+<meta name="description" content="Dépose ton GPX : profil, carte, zones de difficulté et allure à tenir pente par pente. Réservé aux membres Trail Box.">
+<meta name="robots" content="noindex">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Leaflet (carte du tracé GPX) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
+<!-- Design system (tokens) PUIS styles (composants). L'ordre compte. -->
+<link rel="stylesheet" href="design_system.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="index.html">
+      <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true">
+        <rect width="40" height="40" rx="11" fill="#002FA7"/>
+        <path d="M6.5 29.5 L15 15.5 L20.5 22.5 L26 12 L33.5 29.5 Z" fill="#fff"/>
+        <circle cx="26" cy="12" r="2.1" fill="#002FA7"/>
+      </svg>
+      Trail&nbsp;<span class="b">Box</span>
+    </a>
+    <div class="nav-cta">
+      <div id="nav-auth"></div>
+      <a class="btn btn--primary" href="index.html#outils">Ouvrir la boîte</a>
+    </div>
+  </div>
+</header>
+
+<!-- VOILE DE VÉRIFICATION D'ACCÈS (affiché tant que la session n'est pas confirmée) -->
+<div class="trace-gate" id="trace-gate" role="status" aria-live="polite">
+  <div class="trace-gate-inner">
+    <svg class="trace-gate-spin" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+      <path d="M21 12a9 9 0 1 1-6.2-8.6"/>
+    </svg>
+    <p>Vérification de l'accès…</p>
+  </div>
+</div>
+
+<!-- PAGE — ANALYSE DE TRACÉ (révélée une fois la session confirmée) -->
+<main id="trace-app">
+
+  <section class="trace-hero">
+    <div class="wrap">
+      <span class="eyebrow">Analyse de tracé</span>
+      <h1>Le portrait complet de ta course.</h1>
+      <p class="trace-lead">Balance ton GPX : profil, carte, zones de difficulté et l'allure à tenir pente par pente pour ne pas exploser dès le premier raidard. Tout se calcule dans ton navigateur — le fichier ne quitte jamais ta machine.</p>
+    </div>
+  </section>
+
+  <section class="trace-body">
+    <div class="wrap">
+      <div class="trace-tool card--gpx is-empty" id="trace-tool">
+
+          <!-- Zone de dépôt — pleine en l'absence de trace, compacte ensuite -->
+          <div class="gpx-drop" id="gpx-drop" role="button" tabindex="0" aria-label="Déposer un fichier GPX">
+            <input type="file" id="gpx-file" accept=".gpx,application/gpx+xml" hidden>
+            <svg class="gpx-drop-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span class="gpx-drop-title">Dépose ton <strong>.gpx</strong> ici</span>
+            <span class="gpx-drop-sub">ou clique pour le choisir · fichier .gpx uniquement</span>
+            <span class="gpx-drop-compact">Changer de trace · dépose ou clique</span>
+          </div>
+
+          <!-- Données principales -->
+          <div class="gpx-stats">
+            <div class="gpx-stat">
+              <span class="gpx-stat-label">Dénivelé</span>
+              <span class="skel gpx-stat-skel"></span>
+              <span class="gpx-stat-value" id="gpx-dplus">—</span>
+              <span class="gpx-stat-sub" id="gpx-dminus"></span>
+            </div>
+            <div class="gpx-stat">
+              <span class="gpx-stat-label">Distance totale</span>
+              <span class="skel gpx-stat-skel"></span>
+              <span class="gpx-stat-value" id="gpx-dist">—</span>
+              <span class="gpx-stat-sub" id="gpx-dist-sub"></span>
+            </div>
+          </div>
+
+        <!-- Visuels : profil + carte (pleine largeur, côte à côte > 1440px) -->
+        <div class="trace-visuals">
+
+          <!-- Graphe du profil -->
+          <div class="gpx-chart" id="gpx-chart">
+            <svg class="gpx-chart-skel gpx-chart-ghost" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
+              <path class="gpx-ghost-area" d="M0,190 L80,150 L160,205 L260,95 L360,150 L460,70 L560,175 L680,60 L800,130 L900,45 L1000,165 L1000,260 L0,260 Z"/>
+              <path class="gpx-ghost-line" d="M0,190 L80,150 L160,205 L260,95 L360,150 L460,70 L560,175 L680,60 L800,130 L900,45 L1000,165"/>
+            </svg>
+            <div class="gpx-chart-inner" id="gpx-chart-inner">
+              <div class="gpx-axis-y gpx-axis-pace" id="gpx-axis-pace" aria-hidden="true"></div>
+              <div class="gpx-plot" id="gpx-plot">
+                <svg class="gpx-svg" id="gpx-svg" viewBox="0 0 1000 260" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="gpxFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" class="gpx-fill-top"/>
+                      <stop offset="1" class="gpx-fill-bot"/>
+                    </linearGradient>
+                  </defs>
+                  <path class="gpx-area" id="gpx-area" d=""/>
+                  <g class="gpx-diff-zones" id="gpx-diff-zones" aria-hidden="true"></g>
+                  <path class="gpx-line" id="gpx-line" d=""/>
+                  <path class="gpx-pace-line" id="gpx-pace-line" d=""/>
+                  <g class="gpx-ravito-marks" id="gpx-ravito-marks" aria-hidden="true"></g>
+                  <line class="gpx-cursor" id="gpx-cursor" x1="0" y1="0" x2="0" y2="260" />
+                  <circle class="gpx-dot" id="gpx-dot" r="4" cx="0" cy="0" />
+                </svg>
+                <div class="gpx-tip" id="gpx-tip" aria-hidden="true">
+                  <span class="gpx-tip-km" id="gpx-tip-km">—</span>
+                  <span class="gpx-tip-row"><span>Alt</span><b id="gpx-tip-alt">—</b></span>
+                  <span class="gpx-tip-row"><span>Pente</span><b id="gpx-tip-slope">—</b></span>
+                  <span class="gpx-tip-row gpx-tip-pace"><span id="gpx-tip-pace-label">Allure cible</span><b id="gpx-tip-pace">—</b></span>
+                </div>
+              </div>
+              <div class="gpx-axis-y gpx-axis-ele" id="gpx-axis-ele" aria-hidden="true"></div>
+            </div>
+            <div class="gpx-legend">
+              <span class="gpx-legend-item gpx-legend-pace">Allure cible (moy. /km)</span>
+              <span class="gpx-legend-item gpx-legend-ele">Profil / altitude</span>
+              <span class="gpx-legend-sep" aria-hidden="true"></span>
+              <span class="gpx-legend-item gpx-legend-easy">Facile (&lt; 8 %)</span>
+              <span class="gpx-legend-item gpx-legend-moderate">Modéré (8–15 %)</span>
+              <span class="gpx-legend-item gpx-legend-hard">Difficile (&gt; 15 %)</span>
+            </div>
+          </div>
+
+          <!-- Carte du tracé (Leaflet) -->
+          <div class="gpx-map" id="gpx-map" aria-label="Carte du tracé"></div>
+
+        </div><!-- /.trace-visuals -->
+
+        <!-- Réglages : 3 cartes isolées, toujours ouvertes -->
+        <div class="trace-config">
+
+          <!-- Allure cible — activable (switch) + repliable -->
+          <div class="gpx-splits gpx-pacing-box" id="gpx-pacing-box">
+            <div class="gpx-pacing-head">
+              <button class="gpx-splits-toggle gpx-pacing-toggle" id="gpx-pacing-toggle" type="button" aria-expanded="false" aria-controls="gpx-pacing-panel">
+                <span class="gpx-splits-tag">Allure cible</span>
+                <svg class="note-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <label class="gpx-switch">
+                <input type="checkbox" id="gpx-pacing-switch" aria-label="Activer le calcul d'allure cible">
+                <span class="gpx-switch-track"><span class="gpx-switch-thumb"></span></span>
+              </label>
+            </div>
+            <div class="gpx-splits-collapse" id="gpx-pacing-panel">
+              <div class="gpx-splits-inner">
+                <div class="gpx-pacing-fields">
+
+                  <!-- Temps visé -->
+                  <div class="field gpx-time-field">
+                    <label>Temps visé (h&nbsp;:&nbsp;min&nbsp;:&nbsp;s)</label>
+                    <div class="time-group">
+                      <input type="number" id="gpx-th" value="1" min="0" aria-label="heures"><span>:</span>
+                      <input type="number" id="gpx-tm" value="30" min="0" max="59" aria-label="minutes"><span>:</span>
+                      <input type="number" id="gpx-ts" value="00" min="0" max="59" aria-label="secondes">
+                    </div>
+                    <span class="field-hint" id="gpx-pace-hint">Importe une trace, fixe un temps visé : on adapte l'allure à chaque pente au survol du profil.</span>
+                  </div>
+
+                  <!-- Stratégie d'allure : negative / positive split -->
+                  <div class="field gpx-split">
+                    <label for="gpx-split-input">Stratégie d'allure <span class="gpx-split-val" id="gpx-split-val">Régulier</span></label>
+                    <input class="gpx-range" type="range" id="gpx-split-input" min="-20" max="20" step="1" value="0" aria-label="Negative ou positive split">
+                    <div class="gpx-split-ends">
+                      <span>← Négatif (fin rapide)</span>
+                      <span>Positif (départ rapide) →</span>
+                    </div>
+                  </div>
+
+                  <!-- Effort en montée -->
+                  <div class="field gpx-split gpx-climb">
+                    <label for="gpx-climb-input">Effort en montée <span class="gpx-split-val" id="gpx-climb-val">Neutre</span></label>
+                    <input class="gpx-range" type="range" id="gpx-climb-input" min="-100" max="100" step="5" value="0" aria-label="Effort en montée">
+                    <div class="gpx-split-ends">
+                      <span>← Tranquille</span>
+                      <span>On envoie du pâté →</span>
+                    </div>
+                  </div>
+
+                </div><!-- /.gpx-pacing-fields -->
+              </div>
+            </div>
+          </div><!-- /.gpx-pacing-box -->
+
+          <!-- Ravitaillements — repliable -->
+          <div class="gpx-splits gpx-ravitos-box" id="gpx-ravitos-box">
+            <button class="gpx-splits-toggle" id="gpx-ravitos-toggle" type="button" aria-expanded="false" aria-controls="gpx-ravitos-panel">
+              <span class="gpx-splits-tag">Ravitaillements <span class="gpx-ravitos-count" id="gpx-ravitos-count">0</span></span>
+              <svg class="note-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="gpx-splits-collapse" id="gpx-ravitos-panel">
+              <div class="gpx-splits-inner">
+                <div class="gpx-ravitos-list" id="gpx-ravitos-list"></div>
+                <button class="gpx-ravito-addbtn" id="gpx-ravito-addbtn" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Ajouter un ravitaillement
+                </button>
+                <div class="gpx-ravito-form" id="gpx-ravito-form" hidden>
+                  <div class="gpx-ravito-fields">
+                    <label class="gpx-ravito-field">
+                      <span>Position (km)</span>
+                      <input type="number" id="gpx-ravito-pos" min="0" step="0.1" placeholder="ex. 12,5">
+                    </label>
+                    <label class="gpx-ravito-field">
+                      <span>Arrêt (min)</span>
+                      <input type="number" id="gpx-ravito-stop" min="0" step="0.5" value="2">
+                    </label>
+                  </div>
+                  <div class="gpx-ravito-actions">
+                    <button type="button" class="gpx-ravito-cancel" id="gpx-ravito-cancel">Annuler</button>
+                    <button type="button" class="gpx-ravito-confirm" id="gpx-ravito-confirm">Ajouter</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Temps de passage (¼, ½, ¾) — repliable -->
+          <div class="gpx-splits" id="gpx-splits">
+            <button class="gpx-splits-toggle" id="gpx-splits-toggle" type="button" aria-expanded="false" aria-controls="gpx-splits-panel">
+              <span class="gpx-splits-tag">Temps de passage</span>
+              <svg class="note-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="gpx-splits-collapse" id="gpx-splits-panel">
+              <div class="gpx-splits-inner" id="gpx-splits-body"></div>
+            </div>
+          </div>
+
+        </div><!-- /.trace-config -->
+
+        <div class="note trace-note">
+          <span class="note-tag">La théorie</span>
+          <p>On lit chaque point de la trace : la <strong>distance réelle</strong> est sommée par <strong>Haversine</strong> entre points GPS, le <strong>D+/D-</strong> en additionnant montées et descentes <em>après un léger lissage</em> (seuil ~3&nbsp;m) — sans ça, le moindre tremblement du GPS gonfle le dénivelé.</p>
+          <p>Pour l'<strong>allure cible</strong>, ton temps visé est réparti <strong>à effort constant</strong> via le coût énergétique de <strong>Minetti</strong> : une portion raide « coûte » plus de temps qu'un plat, une descente en rend. On calibre une allure plate équivalente <code>P = temps visé ÷ Σ (distanceᵢ × coût(penteᵢ) ÷ coût(0))</code> ; au survol, on affiche <code>P × coût(pente locale) ÷ coût(0)</code>. Par construction, la somme des temps segment par segment retombe <strong>pile sur ton objectif</strong>.</p>
+        </div>
+
+      </div><!-- /.trace-tool -->
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="brand" href="index.html">
+          <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true">
+            <rect width="40" height="40" rx="11" fill="#002FA7"/>
+            <path d="M6.5 29.5 L15 15.5 L20.5 22.5 L26 12 L33.5 29.5 Z" fill="#fff"/>
+            <circle cx="26" cy="12" r="2.1" fill="#002FA7"/>
+          </svg>
+          Trail&nbsp;<span class="b">Box</span>
+        </a>
+        <p>La boîte à outils du traileur pressé. Faite par quelqu'un qui en avait marre de chercher.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h5>Les outils</h5>
+          <a href="index.html#outils">Allure</a>
+          <a href="index.html#outils">Pourcentage de pente</a>
+          <a href="index.html#outils">Temps de course</a>
+          <a href="trace.html">Analyse de tracé GPX</a>
+        </div>
+        <div class="footer-col">
+          <h5>Le projet</h5>
+          <a href="index.html#concept">Le concept</a>
+          <a href="mailto:val.bertinetti@gmail.com">Contact</a>
+          <a href="confidentialite.html">Confidentialité &amp; cookies</a>
+          <a href="#" data-cookie-action="manage">Gérer les cookies</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bot">© 2026 Trail Box — Fait entre deux sorties longues.<br>Conçu et développé par <a href="" target="_blank" rel="noopener">Valentin Bertinetti</a>.</div>
+  </div>
+</footer>
+
+<!-- AUTH OVERLAY + MODAL -->
+<div id="auth-overlay" hidden></div>
+
+<div id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" hidden>
+  <button class="auth-close" id="auth-close" aria-label="Fermer">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+
+  <div class="auth-brand" aria-hidden="true">
+    <svg width="38" height="38" viewBox="0 0 40 40">
+      <rect width="40" height="40" rx="11" fill="#002FA7"/>
+      <path d="M6.5 29.5 L15 15.5 L20.5 22.5 L26 12 L33.5 29.5 Z" fill="#fff"/>
+      <circle cx="26" cy="12" r="2.1" fill="#002FA7"/>
+    </svg>
+  </div>
+
+  <h2 class="auth-title" id="auth-modal-title">Trail&nbsp;<span>Box</span></h2>
+
+  <div class="auth-tabs" role="tablist">
+    <button class="auth-tab" id="auth-tab-login"  role="tab" aria-selected="true">Connexion</button>
+    <button class="auth-tab" id="auth-tab-signup" role="tab" aria-selected="false">Créer un compte</button>
+  </div>
+
+  <p class="auth-msg" id="auth-msg" role="alert" hidden></p>
+
+  <form class="auth-form" id="auth-form-login" novalidate>
+    <div class="field">
+      <label for="login-email">Email</label>
+      <input class="input" type="email" id="login-email" placeholder="toi@example.com" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="login-password">Mot de passe</label>
+      <input class="input" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+    </div>
+    <button class="btn btn--primary auth-submit" type="submit">Se connecter</button>
+  </form>
+
+  <form class="auth-form" id="auth-form-signup" novalidate hidden>
+    <div class="field-row">
+      <div class="field">
+        <label for="signup-firstname">Prénom</label>
+        <input class="input" type="text" id="signup-firstname" placeholder="Camille" required autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label for="signup-lastname">Nom</label>
+        <input class="input" type="text" id="signup-lastname" placeholder="Dupont" required autocomplete="family-name">
+      </div>
+    </div>
+    <div class="field">
+      <label for="signup-email">Email</label>
+      <input class="input" type="email" id="signup-email" placeholder="toi@example.com" required autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="signup-password">Mot de passe</label>
+      <input class="input" type="password" id="signup-password" placeholder="8 caractères minimum" required autocomplete="new-password" minlength="8">
+    </div>
+    <button class="btn btn--primary auth-submit" type="submit">Créer mon compte</button>
+  </form>
+</div>
+
+<!-- SNACKBAR -->
+<div class="snackbar" id="snackbar" role="status" aria-live="polite" aria-hidden="true">
+  <div class="snackbar-icon" aria-hidden="true">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  </div>
+  <div class="snackbar-body">
+    <span class="snackbar-title" id="snackbar-title">—</span>
+    <span class="snackbar-desc" id="snackbar-desc">—</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<!-- BANNIÈRE COOKIES (RGPD / CNIL) -->
+<div id="cookie-banner" class="cookie-banner" role="region" aria-label="Gestion des cookies" hidden>
+  <div class="cookie-banner__inner">
+    <p class="cookie-banner__text">
+      On utilise un cookie de mesure d'audience (Google&nbsp;Analytics) pour comprendre
+      comment Trail Box est utilisé. Rien n'est déposé sans ton accord.
+      <a href="confidentialite.html">En savoir plus</a>.
+    </p>
+    <div class="cookie-banner__actions">
+      <button type="button" class="btn btn--ghost cookie-banner__btn" data-cookie-action="decline">Refuser</button>
+      <button type="button" class="btn btn--primary cookie-banner__btn" data-cookie-action="accept">Accepter</button>
+    </div>
+  </div>
+</div>
+
+<script src="cookies.js" defer></script>
+<script src="auth.js" defer></script>
+<script src="trace.js" defer></script>
+</body>
+</html>

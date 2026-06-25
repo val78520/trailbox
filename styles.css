@@ -908,6 +908,24 @@ select.input {
 }
 .gpx-legend-pace::before { background: var(--ds-sys-color-pace-line); }
 .gpx-legend-ele::before  { background: var(--ds-sys-color-primary); }
+/* Séparateur fin entre légende du profil et légende des zones de difficulté */
+.gpx-legend-sep {
+  width: 1px;
+  align-self: stretch;
+  min-height: 14px;
+  background: var(--ds-sys-color-outline);
+}
+/* Pastilles carrées des zones de difficulté (distinctes des traits du profil) */
+.gpx-legend-easy::before,
+.gpx-legend-moderate::before,
+.gpx-legend-hard::before {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--ds-sys-shape-corner-xs);
+}
+.gpx-legend-easy::before     { background: var(--ds-sys-color-grade-easy); }
+.gpx-legend-moderate::before { background: var(--ds-sys-color-grade-moderate); }
+.gpx-legend-hard::before     { background: var(--ds-sys-color-grade-hard); }
 .gpx-fill-top { stop-color: var(--ds-sys-color-primary); stop-opacity: .22; }
 .gpx-fill-bot { stop-color: var(--ds-sys-color-primary); stop-opacity: 0; }
 .gpx-area { fill: url(#gpxFill); stroke: none; }
@@ -1007,6 +1025,198 @@ select.input {
 .card--gpx.is-map .gpx-time-field,
 .card--gpx.is-map .gpx-split { display: none; }
 .card--gpx.is-map .gpx-map { display: block; }
+
+/* ---- Zones de difficulté (bande colorée sous le profil) ---------------- */
+.gpx-diff { opacity: .9; }
+.gpx-diff--easy     { fill: var(--ds-sys-color-grade-easy); }
+.gpx-diff--moderate { fill: var(--ds-sys-color-grade-moderate); }
+.gpx-diff--hard     { fill: var(--ds-sys-color-grade-hard); }
+.card--gpx.is-empty .gpx-diff-zones { display: none; }
+
+/* ============================================================================
+   PAGE DÉDIÉE — ANALYSE DE TRACÉ (trace.html)
+   ========================================================================== */
+/* Gating : le contenu reste masqué tant que la session n'est pas confirmée. */
+#trace-app { display: none; }
+body.is-authed #trace-app { display: block; }
+body.is-authed #trace-gate { display: none; }
+
+.trace-gate {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ds-sys-color-on-surface-variant);
+}
+.trace-gate-inner { display: flex; flex-direction: column; align-items: center; gap: var(--ds-sys-spacing-12); }
+.trace-gate-spin { animation: trace-spin 0.8s linear infinite; color: var(--ds-sys-color-primary); }
+@keyframes trace-spin { to { transform: rotate(360deg); } }
+
+/* En-tête de page (contenu classique, pas une card) */
+.trace-hero { padding: var(--ds-sys-spacing-64) 0 var(--ds-sys-spacing-32); }
+.trace-hero h1 {
+  font-size: var(--ds-sys-type-size-headline-lg);
+  font-weight: var(--ds-sys-type-weight-extrabold);
+  letter-spacing: var(--ds-sys-type-tracking-tighter);
+  line-height: var(--ds-sys-type-line-snug);
+  margin: var(--ds-sys-spacing-16) 0 var(--ds-sys-spacing-12);
+}
+.trace-lead {
+  max-width: 65ch;
+  font-size: var(--ds-sys-type-size-body-lg);
+  color: var(--ds-sys-color-on-surface-variant);
+  line-height: var(--ds-sys-type-line-lead);
+}
+
+/* Corps de page : document blanc classique (les visuels y respirent) */
+.trace-body {
+  background: var(--ds-sys-color-surface);
+  padding: var(--ds-sys-spacing-8) 0 var(--ds-sys-spacing-108);
+}
+
+/* Le module en contenu de page (pas une card) : flux vertical
+   dépôt → stats → visuels → réglages → théorie. */
+.trace-tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-sys-spacing-24);
+}
+
+/* --- Visuels : profil + carte ------------------------------------------- */
+/* Pleine largeur (empilés) par défaut ; côte à côte au-delà de 1440px. */
+.trace-visuals { display: grid; grid-template-columns: 1fr; gap: var(--ds-sys-spacing-20); }
+.trace-tool .gpx-map { display: block; }       /* profil ET carte (plus de bascule) */
+.trace-tool .gpx-plot,
+.trace-tool .gpx-axis-y,
+.trace-tool .gpx-chart-skel,
+.trace-tool .gpx-chart-ghost { height: 320px; }
+.trace-tool .gpx-map { height: 440px; }
+
+@media (min-width: 1441px) {
+  .trace-visuals { grid-template-columns: 1fr 1fr; align-items: start; }
+  .trace-tool .gpx-plot,
+  .trace-tool .gpx-axis-y,
+  .trace-tool .gpx-chart-skel,
+  .trace-tool .gpx-chart-ghost { height: 380px; }
+  .trace-tool .gpx-map { height: 420px; }
+}
+
+/* --- Réglages : 3 cartes isolées, toujours ouvertes -------------------- */
+.trace-config {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ds-sys-spacing-20);
+  align-items: start;
+}
+/* Chaque groupe devient une carte nettement séparée (fond + bord + ombre). */
+.trace-config .gpx-splits {
+  border-top: none;
+  padding: var(--ds-sys-spacing-20);
+  background: var(--ds-sys-color-surface);
+  border: 1px solid var(--ds-sys-color-outline);
+  border-radius: var(--ds-sys-shape-corner-xl);
+  box-shadow: var(--ds-sys-elevation-1);
+}
+@media (max-width: 1024px) {
+  .trace-config { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 680px) {
+  .trace-config { grid-template-columns: 1fr; }
+}
+
+/* --- Théorie : toujours en bas, pleine largeur ------------------------- */
+.trace-note { margin-top: var(--ds-sys-spacing-8); }
+
+/* --- Redépôt léger : grande zone à vide, barre compacte une fois chargé - */
+.gpx-drop-compact { display: none; }
+.trace-tool.is-empty .gpx-drop { min-height: 320px; justify-content: center; }
+/* Une fois la trace chargée : zone de dépôt réduite à une barre discrète. */
+.trace-tool:not(.is-empty) .gpx-drop {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-sys-spacing-8);
+  padding: var(--ds-sys-spacing-10) var(--ds-sys-spacing-16);
+}
+.trace-tool:not(.is-empty) .gpx-drop-icon { width: 18px; height: 18px; margin: 0; }
+.trace-tool:not(.is-empty) .gpx-drop-title,
+.trace-tool:not(.is-empty) .gpx-drop-sub { display: none; }
+.trace-tool:not(.is-empty) .gpx-drop-compact {
+  display: inline;
+  font-size: var(--ds-sys-type-size-label-sm);
+  font-weight: var(--ds-sys-type-weight-semibold);
+}
+
+/* État vide : seule la zone de dépôt est visible */
+.trace-tool.is-empty .gpx-stats,
+.trace-tool.is-empty .trace-visuals,
+.trace-tool.is-empty .trace-config,
+.trace-tool.is-empty .trace-note { display: none; }
+
+/* ---- Promo « Analyse de tracé » sur la homepage (membres connectés) ----- */
+.trace-promo {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--ds-sys-spacing-24);
+  overflow: hidden;
+  background: var(--ds-sys-color-primary);
+  color: var(--ds-sys-color-on-primary);
+  border-radius: var(--ds-sys-shape-corner-xl);
+  padding: var(--ds-sys-spacing-32);
+  margin-bottom: var(--ds-sys-spacing-32);
+  text-decoration: none;
+  box-shadow: var(--ds-sys-elevation-1);
+  transition: transform var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-standard),
+              box-shadow var(--ds-sys-motion-duration-slow) var(--ds-sys-motion-easing-standard);
+}
+.trace-promo[hidden] { display: none; }
+.trace-promo:hover { transform: translateY(-4px); box-shadow: var(--ds-sys-elevation-2); }
+.trace-promo-body { max-width: 60ch; }
+.trace-promo .eyebrow { color: var(--ds-sys-color-on-primary); opacity: .8; margin-bottom: var(--ds-sys-spacing-12); }
+.trace-promo h2 {
+  font-size: var(--ds-sys-type-size-headline-lg);
+  font-weight: var(--ds-sys-type-weight-extrabold);
+  letter-spacing: var(--ds-sys-type-tracking-tighter);
+  line-height: var(--ds-sys-type-line-snug);
+  color: var(--ds-sys-color-on-primary);
+  margin-bottom: var(--ds-sys-spacing-12);
+}
+.trace-promo p {
+  font-size: var(--ds-sys-type-size-body-lg);
+  line-height: var(--ds-sys-type-line-lead);
+  color: var(--ds-sys-color-on-primary);
+  opacity: .92;
+  margin-bottom: var(--ds-sys-spacing-20);
+}
+.trace-promo-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-sys-spacing-8);
+  font-weight: var(--ds-sys-type-weight-bold);
+  color: var(--ds-sys-color-on-primary);
+}
+.trace-promo:hover .trace-promo-cta svg { transform: translateX(3px); }
+.trace-promo-cta svg { transition: transform var(--ds-sys-motion-duration-fast) var(--ds-sys-motion-easing-standard); }
+.trace-promo-profile {
+  width: clamp(180px, 26%, 280px);
+  align-self: stretch;
+  flex-shrink: 0;
+}
+.trace-promo-area { fill: var(--ds-sys-color-inverse-surface-container); }
+.trace-promo-line {
+  fill: none;
+  stroke: var(--ds-sys-color-on-primary);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: .9;
+  vector-effect: non-scaling-stroke;
+}
+@media (max-width: 600px) {
+  .trace-promo { flex-direction: column; padding: var(--ds-sys-spacing-24); }
+  .trace-promo-profile { width: 100%; height: 80px; }
+}
 
 /* ---- Temps de passage (repliable) -------------------------------------- */
 .gpx-splits {

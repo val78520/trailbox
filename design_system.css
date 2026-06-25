@@ -22,6 +22,7 @@
   --ds-ref-licorice:        #15151A;  /* Noir réglisse — couleur secondaire   */
   --ds-ref-tomato:          #C2362F;  /* Rouge — états d'erreur               */
   --ds-ref-tangerine:       #E8730C;  /* Orange — courbe d'allure (contraste) */
+  --ds-ref-fern:            #2F9E44;  /* Vert — zones de difficulté (facile)  */
   --ds-ref-gray-600:        #6E6E73;  /* Gris texte secondaire                */
   --ds-ref-gray-300:        #DCDCE1;  /* Gris bordure                         */
   --ds-ref-gray-100:        #F5F5F7;  /* Gris fond                            */
@@ -70,6 +71,11 @@
   --ds-sys-color-error:              var(--ds-ref-tomato);
   --ds-sys-color-on-error:           var(--ds-ref-white);
   --ds-sys-color-pace-line:          var(--ds-ref-tangerine);
+
+  /* Zones de difficulté du profil GPX (selon la pente) */
+  --ds-sys-color-grade-easy:         var(--ds-ref-fern);       /* < 8 %   */
+  --ds-sys-color-grade-moderate:     var(--ds-ref-tangerine);  /* 8–15 %  */
+  --ds-sys-color-grade-hard:         var(--ds-ref-tomato);     /* > 15 %  */
 
   /* Surfaces claires */
   --ds-sys-color-surface:            var(--ds-ref-white);
