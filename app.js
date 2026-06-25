@@ -452,13 +452,17 @@ document.addEventListener('trailbox:auth', async e => {
 
   if (!nowAuth) {
     currentUserId = null;
-    // Déconnexion réelle (≠ chargement anonyme) : on vide le miroir local
-    // pour ne pas laisser les favoris d'un compte sur un appareil partagé.
-    if (wasAuthenticated) saveFavorites([]);
+    // Déconnexion réelle (≠ chargement anonyme / état transitoire pendant la
+    // restauration de session) : on vide le miroir local pour ne pas laisser
+    // les favoris d'un compte sur un appareil partagé, et on oublie le drapeau
+    // optimiste. Un évènement « anonyme » au chargement ne doit PAS effacer ce
+    // drapeau, sinon la promo « Analyse de tracé » cesse de s'afficher de
+    // façon optimiste au rechargement (et la carte d'incitation re-flashe).
+    if (wasAuthenticated) { saveFavorites([]); setAuthHint(false); }
+  } else {
+    setAuthHint(true); // mémorise l'état pour un affichage optimiste au prochain chargement
   }
   wasAuthenticated = nowAuth;
-
-  setAuthHint(nowAuth); // mémorise l'état pour un affichage optimiste au prochain chargement
   renderFavorites();   // rendu immédiat : carte d'incitation
   updateTraceChrome(); // promo homepage + lien nav (réservés aux membres)
 
@@ -469,11 +473,19 @@ document.addEventListener('trailbox:auth', async e => {
   }
 });
 
-/* Filet de sécurité : si aucun évènement d'auth n'arrive (ex. échec de
-   chargement de Supabase), on bascule en « anonyme résolu » pour que la
-   carte d'incitation finisse par s'afficher au lieu de rester masquée. */
+/* Filet de sécurité : si aucun évènement d'auth n'arrive dans les temps (ex.
+   échec ou lenteur de chargement de Supabase), on résout l'état d'auth en se
+   fiant au drapeau optimiste plutôt qu'en forçant « anonyme ». Sans ça, un
+   membre dont la session tarde à se restaurer voyait la carte d'incitation
+   apparaître et la promo « Analyse de tracé » disparaître le temps que Supabase
+   réponde. Si Supabase répond ensuite, sa vérité corrige cet état optimiste. */
 setTimeout(() => {
-  if (!authResolved) { authResolved = true; renderFavorites(); updateTraceChrome(); }
+  if (!authResolved) {
+    authResolved    = true;
+    isAuthenticated = hasAuthHint();
+    renderFavorites();
+    updateTraceChrome();
+  }
 }, 4000);
 
 /* ----------------------------------------------------------------------------
