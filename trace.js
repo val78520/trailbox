@@ -145,6 +145,7 @@ function showSnackbar(title, desc, opts = {}) {
   const C0 = minettiCost(0);              // coût à plat (= 3,6)
 
   let track = null;                        // données calculées de la trace
+  let currentGpx = null;                    // { text, name, savedId } du GPX courant
   let pacingOn = false;                     // calcul d'allure cible activé (switch)
   let ravitos = [];                        // [{ id, distM, stopSec }] points d'arrêt
   let ravitoSeq = 0;                        // identifiant incrémental
@@ -830,6 +831,32 @@ function showSnackbar(title, desc, opts = {}) {
     fitTimer = setTimeout(fitMap, 150);
   });
 
+  /* --- Application d'un GPX (source commune import / rechargement) ---------- */
+  // Parse + analyse + rendu d'un GPX (texte brut). Utilisé par l'import de
+  // fichier ET par le rechargement d'un tracé enregistré. Mémorise le GPX
+  // courant (texte + nom) pour permettre sa sauvegarde. Renvoie le nb de points.
+  function applyTrace(text, name) {
+    const pts = parseGPX(text);
+    track = analyse(pts);
+    elDplus.textContent = 'D+ ' + intFmt(track.dPlus) + ' m';
+    elDmin.textContent  = 'D- ' + intFmt(track.dMinus) + ' m';
+    elDist.textContent  = (track.total / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
+    elDistS.textContent = 'distance réelle';
+    card.classList.remove('is-empty');
+    resetRavitos();
+    renderChart();
+    renderDiffZones();
+    renderEleAxis();
+    renderPaceCurve();
+    renderSplits();
+    updateHint();
+    renderRavitoMarks();
+    renderMap();   // profil ET carte affichés ensemble (plus de bascule)
+    currentGpx = { text, name, savedId: null };
+    updateSaveBtn();
+    return track.n;
+  }
+
   /* --- Chargement d'un fichier -------------------------------------------- */
   function handleFile(file) {
     if (!file) return;
@@ -842,23 +869,9 @@ function showSnackbar(title, desc, opts = {}) {
     reader.onerror = () => showSnackbar('Lecture impossible', "Le fichier n'a pas pu être lu.", { variant: 'error' });
     reader.onload = () => {
       try {
-        const pts = parseGPX(reader.result);
-        track = analyse(pts);
-        elDplus.textContent = 'D+ ' + intFmt(track.dPlus) + ' m';
-        elDmin.textContent  = 'D- ' + intFmt(track.dMinus) + ' m';
-        elDist.textContent  = (track.total / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km';
-        elDistS.textContent = 'distance réelle';
-        card.classList.remove('is-empty');
-        resetRavitos();
-        renderChart();
-        renderDiffZones();
-        renderEleAxis();
-        renderPaceCurve();
-        renderSplits();
-        updateHint();
-        renderRavitoMarks();
-        renderMap();   // profil ET carte affichés ensemble (plus de bascule)
-        showSnackbar('Trace importée', track.n.toLocaleString('fr-FR') + ' points analysés. Survole le profil.', { variant: 'success' });
+        const name = file.name.replace(/\.gpx$/i, '');
+        const n = applyTrace(reader.result, name);
+        showSnackbar('Trace importée', n.toLocaleString('fr-FR') + ' points analysés. Survole le profil.', { variant: 'success' });
       } catch (err) {
         showSnackbar('Import impossible', err.message || 'Fichier GPX invalide.', { variant: 'error' });
       }
@@ -881,4 +894,149 @@ function showSnackbar(title, desc, opts = {}) {
     drop.classList.remove('is-drag');
     handleFile(e.dataTransfer.files[0]);
   });
+
+  /* ========================================================================
+     TRACÉS ENREGISTRÉS (Supabase) — sauvegarde liée au profil, max 3
+     ------------------------------------------------------------------------
+     La page est déjà réservée aux membres (voir gating en tête de fichier).
+     On stocke le GPX brut + son nom dans la table `user_traces` (RLS par
+     utilisateur, limite de 3 garantie côté serveur). Le localStorage n'est
+     pas utilisé : la trace appartient au compte, pas à la machine.
+     ====================================================================== */
+  const MAX_TRACES   = 3;
+  const MAX_GPX_LEN  = 3000000;            // garde-fou taille (≈ check serveur)
+  const savedBox     = document.getElementById('gpx-saved');
+  const savedListEl  = document.getElementById('gpx-saved-list');
+  const savedCountEl = document.getElementById('gpx-saved-count');
+  const savedSaveBtn = document.getElementById('gpx-saved-savebtn');
+  let savedTraces = [];                     // [{ id, name }] métadonnées (sans GPX)
+  let savedUserId = null;
+
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // Bouton « Sauvegarder » : visible si un tracé est chargé et pas déjà enregistré.
+  function updateSaveBtn() {
+    if (!savedSaveBtn) return;
+    savedSaveBtn.hidden = !currentGpx || !!currentGpx.savedId;
+  }
+
+  function renderSavedList() {
+    if (!savedListEl) return;
+    savedCountEl.textContent = savedTraces.length + '/' + MAX_TRACES;
+    if (!savedTraces.length) {
+      savedListEl.innerHTML = '<p class="gpx-splits-empty">Aucun tracé enregistré. Importe un GPX puis sauvegarde-le pour le retrouver à ta prochaine visite.</p>';
+      return;
+    }
+    savedListEl.innerHTML = savedTraces.map(t =>
+      '<div class="gpx-saved-item">' +
+        '<button class="gpx-saved-load" type="button" data-load="' + t.id + '">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
+          '<span class="gpx-saved-name">' + escapeHtml(t.name) + '</span>' +
+        '</button>' +
+        '<button class="gpx-saved-del" type="button" data-del-trace="' + t.id + '" aria-label="Supprimer le tracé ' + escapeHtml(t.name) + '">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+        '</button>' +
+      '</div>'
+    ).join('');
+  }
+
+  async function refreshSavedTraces() {
+    if (!savedUserId) return;
+    const { data, error } = await sb
+      .from('user_traces')
+      .select('id, name')
+      .order('created_at', { ascending: true });
+    if (error) { console.warn('[tracés] lecture impossible', error); return; }
+    savedTraces = data || [];
+    renderSavedList();
+  }
+
+  async function saveCurrentTrace() {
+    if (!currentGpx || !savedUserId || currentGpx.savedId) return;
+    if (savedTraces.length >= MAX_TRACES) {
+      showSnackbar('Limite atteinte', 'Tu peux enregistrer 3 tracés au maximum. Supprimes-en un pour faire de la place.', { variant: 'error' });
+      return;
+    }
+    if (currentGpx.text.length > MAX_GPX_LEN) {
+      showSnackbar('Tracé trop volumineux', 'Ce GPX est trop lourd pour être enregistré.', { variant: 'error' });
+      return;
+    }
+    showSnackbar('Enregistrement…', 'On sauvegarde ton tracé sur ton compte.', { variant: 'loading', sticky: true });
+    const { data, error } = await sb
+      .from('user_traces')
+      .insert({ user_id: savedUserId, name: currentGpx.name, gpx: currentGpx.text })
+      .select('id, name')
+      .maybeSingle();
+    if (error) {
+      const msg = error.message || '';
+      if (/trace_limit_reached/.test(msg)) {
+        showSnackbar('Limite atteinte', 'Tu as déjà 3 tracés enregistrés.', { variant: 'error' });
+      } else if (/_gpx_check|_name_check/.test(msg)) {
+        showSnackbar('Tracé non enregistré', 'Ce GPX ne peut pas être sauvegardé en l\'état.', { variant: 'error' });
+      } else {
+        showSnackbar("Échec de l'enregistrement", 'Réessaie dans un instant.', { variant: 'error' });
+      }
+      await refreshSavedTraces();
+      return;
+    }
+    currentGpx.savedId = data ? data.id : null;
+    updateSaveBtn();
+    await refreshSavedTraces();
+    showSnackbar('Tracé enregistré', 'Tu le retrouveras dans « Mes tracés » à ta prochaine visite.', { variant: 'success' });
+  }
+
+  async function loadSavedTrace(id) {
+    const meta = savedTraces.find(t => t.id === id);
+    showSnackbar('Chargement…', 'On récupère ton tracé enregistré.', { variant: 'loading', sticky: true });
+    const { data, error } = await sb
+      .from('user_traces')
+      .select('name, gpx')
+      .eq('id', id)
+      .maybeSingle();
+    if (error || !data) {
+      showSnackbar('Chargement impossible', "Ce tracé n'a pas pu être récupéré.", { variant: 'error' });
+      return;
+    }
+    try {
+      const n = applyTrace(data.gpx, data.name);
+      currentGpx.savedId = id;   // déjà en base → pas de re-sauvegarde
+      updateSaveBtn();
+      showSnackbar('Tracé chargé', (meta ? meta.name : data.name) + ' · ' + n.toLocaleString('fr-FR') + ' points.', { variant: 'success' });
+    } catch (err) {
+      showSnackbar('Tracé illisible', err.message || 'Le fichier enregistré est invalide.', { variant: 'error' });
+    }
+  }
+
+  async function deleteSavedTrace(id) {
+    const meta = savedTraces.find(t => t.id === id);
+    const { error } = await sb.from('user_traces').delete().eq('id', id);
+    if (error) {
+      showSnackbar('Suppression impossible', 'Réessaie dans un instant.', { variant: 'error' });
+      return;
+    }
+    if (currentGpx && currentGpx.savedId === id) { currentGpx.savedId = null; updateSaveBtn(); }
+    await refreshSavedTraces();
+    showSnackbar('Tracé supprimé', (meta ? '« ' + meta.name + ' »' : 'Le tracé') + ' a été retiré de ton compte.', { variant: 'default' });
+  }
+
+  if (savedSaveBtn) savedSaveBtn.addEventListener('click', saveCurrentTrace);
+  if (savedListEl) savedListEl.addEventListener('click', e => {
+    const loadBtn = e.target.closest('[data-load]');
+    if (loadBtn) { loadSavedTrace(loadBtn.dataset.load); return; }
+    const delBtn = e.target.closest('[data-del-trace]');
+    if (delBtn) deleteSavedTrace(delBtn.dataset.delTrace);
+  });
+
+  // Initialisation : la page étant réservée, l'utilisateur est connecté.
+  (async function initSavedTraces() {
+    if (!savedBox || typeof sb === 'undefined' || !sb.auth) return;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session || !session.user) return;
+      savedUserId = session.user.id;
+      savedBox.hidden = false;
+      await refreshSavedTraces();
+    } catch (err) { console.warn('[tracés] init impossible', err); }
+  })();
 })();

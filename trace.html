@@ -78,6 +78,20 @@
             <span class="gpx-drop-compact">Changer de trace · dépose ou clique</span>
           </div>
 
+          <!-- Tracés enregistrés (membres) — re-sélection rapide d'un GPX sauvegardé -->
+          <div class="gpx-saved" id="gpx-saved" hidden>
+            <div class="gpx-saved-head">
+              <span class="gpx-saved-tag">Mes tracés enregistrés <span class="gpx-saved-count" id="gpx-saved-count">0/3</span></span>
+              <button class="gpx-saved-savebtn" id="gpx-saved-savebtn" type="button" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Sauvegarder ce tracé
+              </button>
+            </div>
+            <div class="gpx-saved-list" id="gpx-saved-list"></div>
+          </div>
+
           <!-- Données principales -->
           <div class="gpx-stats">
             <div class="gpx-stat">
