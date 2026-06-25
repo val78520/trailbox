@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trail Box — La boîte à outils du traileur</title>
-<meta name="description" content="Allure, pente, temps de course, VMA, VO2max. Tu rentres tes chiffres, on te sort le résultat. Pas de pub, pas de prise de tête.">
+<meta name="description" content="Allure, pente, GAP, VMA, VO2max. Tu rentres tes chiffres, on te sort le résultat. Pas de pub, pas de prise de tête.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,11 +50,11 @@
   <div class="wrap">
     <span class="eyebrow reveal">Dans la boîte, tout pour le trail</span>
     <h1 class="reveal d1" id="hero-baseline">Arrête de calculer ton allure sur un coin de nappe.</h1>
-    <p class="hero-sub reveal d2">Allure, pente, temps de course. Tu rentres tes chiffres, on te sort le résultat. Pas de pub, pas de tuto de 12 minutes, pas de tableur Excel de 2009.</p>
+    <p class="hero-sub reveal d2">Allure, pente, VMA, VO2max. Tu rentres tes chiffres, on te sort le résultat. Pas de pub, pas de tuto de 12 minutes, pas de tableur Excel de 2009.</p>
     <div class="hero-actions reveal d3">
       <a class="btn btn--primary btn--lg" href="#outils">Ouvrir la boîte</a>
       <a class="btn btn--ghost btn--lg" href="#concept">Comment ça marche</a>
-      <span class="hero-note">9 outils · 100 % gratuit</span>
+      <span class="hero-note">8 outils · 100 % gratuit</span>
     </div>
   </div>
 
@@ -92,7 +92,7 @@
 
     <div class="section-head">
       <span class="eyebrow">Les outils</span>
-      <h2>Neuf calculateurs. Aucune excuse.</h2>
+      <h2>Huit calculateurs. Aucune excuse.</h2>
       <p>Conçus pour être utilisés entre deux foulées, pas pour décrocher un master de maths.</p>
     </div>
 
@@ -196,86 +196,6 @@
         <div class="note">
           <span class="note-tag">La théorie</span>
           <p>Le <strong>GAP</strong> (Grade Adjusted Pace) traduit ton allure d'une pente vers une autre, à effort égal — dans les deux sens. <strong>Équivalent à plat</strong> : ta montée (ou descente) ramenée sur le plat. <strong>Équivalent en montée</strong> : ton allure plate convertie en allure de côte. On s'appuie sur le coût énergétique de la course de <strong>Minetti</strong> : <code>équivalent = allure × coût(pente) ÷ coût(0)</code>. La descente n'est pas gratuite — le coût est minimal vers −10&nbsp;%, puis remonte.</p>
-        </div>
-      </article>
-
-      <!-- CARTE — TEMPS DE COURSE (fusion : Riegel + km-effort) -->
-      <article class="card card--wide" data-tool="time">
-        <div class="card-head">
-          <span class="card-num">Temps</span>
-          <h3>Predicteur de course</h3>
-          <p class="card-joke">Avant d'annoncer à ta moitié « je rentre dans 2&nbsp;h ».</p>
-        </div>
-
-        <div class="seg seg--wide" id="time-mode" role="tablist">
-          <button class="is-active" data-mode="ref">J'ai une référence</button>
-          <button data-mode="pace">Je connais mon allure</button>
-        </div>
-
-        <div class="time-body">
-          <!-- MODE A : à partir d'une course de référence (Riegel + km-effort) -->
-          <div class="time-inputs" data-mode="ref">
-            <div class="fields">
-              <div class="field">
-                <label for="r-rdist">Course de référence — distance (km)</label>
-                <input class="input" type="number" id="r-rdist" value="10" min="0" step="0.1" inputmode="decimal">
-              </div>
-              <div class="field">
-                <label>Référence — temps (h&nbsp;:&nbsp;min&nbsp;:&nbsp;s)</label>
-                <div class="time-group">
-                  <input type="number" id="r-rh" value="0" min="0" aria-label="heures"><span>:</span>
-                  <input type="number" id="r-rm" value="45" min="0" max="59" aria-label="minutes"><span>:</span>
-                  <input type="number" id="r-rs" value="00" min="0" max="59" aria-label="secondes">
-                </div>
-              </div>
-              <div class="field">
-                <label for="r-rdplus">Référence — D+ (m)</label>
-                <input class="input" type="number" id="r-rdplus" value="0" min="0" step="10" inputmode="numeric">
-                <span class="field-hint">0 si la référence était à plat (piste, route).</span>
-              </div>
-              <div class="field">
-                <label for="r-tdist">Course visée — distance (km)</label>
-                <input class="input" type="number" id="r-tdist" value="21.1" min="0" step="0.1" inputmode="decimal">
-              </div>
-              <div class="field">
-                <label for="r-tdplus">Course visée — D+ (m)</label>
-                <input class="input" type="number" id="r-tdplus" value="600" min="0" step="10" inputmode="numeric">
-              </div>
-            </div>
-          </div>
-
-          <!-- MODE B : à partir d'une allure cible (km-effort pur) -->
-          <div class="time-inputs" data-mode="pace" hidden>
-            <div class="fields">
-              <div class="field">
-                <label>Allure moyenne (min&nbsp;:&nbsp;s / km)</label>
-                <div class="time-group">
-                  <input type="number" id="t-pm" value="6" min="0" aria-label="minutes par km"><span>:</span>
-                  <input type="number" id="t-ps" value="30" min="0" max="59" aria-label="secondes par km">
-                </div>
-              </div>
-              <div class="field">
-                <label for="t-dist">Distance (km)</label>
-                <input class="input" type="number" id="t-dist" value="25" min="0" step="0.1" inputmode="decimal">
-              </div>
-              <div class="field">
-                <label for="t-deniv">Dénivelé positif — D+ (m)</label>
-                <input class="input" type="number" id="t-deniv" value="1200" min="0" step="10" inputmode="numeric">
-              </div>
-            </div>
-          </div>
-
-          <div class="result">
-            <span class="result-label">Temps estimé</span>
-            <span class="result-value" id="time-out">≈ 2 h 08</span>
-            <span class="result-sub" id="time-sub">soit 6:03 /km</span>
-          </div>
-        </div>
-
-        <div class="note">
-          <span class="note-tag">La théorie</span>
-          <p>Deux méthodes, une même base : le <strong>kilomètre-effort</strong> (<code>km-effort = distance + D+ ÷ 100</code>). En <strong>mode allure</strong>, on multiplie simplement km-effort × allure. En <strong>mode référence</strong>, on fait une <strong>double correction</strong> : on aplatit d'abord ta course de réf en lui retirant son D+ (<code>T₁_plat = T₁ ÷ (1 + D+_ref ÷ (100 × D₁))</code>), on projette ensuite via <strong>Riegel</strong> (<code>T₂ = T₁_plat × (D₂ ÷ D₁)<sup>k</sup></code>), puis on ajoute le D+ de la cible. Sans cette double correction, une réf en trail surestime massivement le temps cible.</p>
-          <p>L'exposant <code>k</code> est le <strong>facteur de fatigue</strong> : il dit de combien on ralentit quand la distance augmente. Plutôt qu'une valeur figée, on le fait <strong>grandir avec la distance</strong> — la déperdition d'énergie est plus forte sur un ultra que sur un 10&nbsp;km (<code>k ≈ 1,06</code> sur route, <code>≈ 1,10</code> au-delà de 80&nbsp;km). On l'évalue sur la <strong>moyenne géométrique</strong> des deux distances (<code>k = 1,06 + 0,01 × ln(D₁ × D₂ ÷ 100)</code>), ce qui rend le calcul <strong>identique dans les deux sens</strong> : prédire un ultra depuis un format court <em>ajoute</em> de la fatigue, l'inverse en <em>retire</em>, sans jamais se contredire.</p>
         </div>
       </article>
 
@@ -647,7 +567,7 @@
 <!-- CONCEPT -->
 <section class="concept" id="concept">
   <div class="wrap">
-    <h2>Une page. Huit outils. Zéro bullshit.</h2>
+    <h2>Une page. Sept outils. Zéro bullshit.</h2>
     <div class="concept-grid">
       <div class="concept-item">
         <div class="bar"></div>
@@ -689,7 +609,6 @@
           <a href="#outils">Allure</a>
           <a href="#outils">Pourcentage de pente</a>
           <a href="#outils">Allure ajustée à la pente</a>
-          <a href="#outils">Temps de course</a>
           <a href="#outils">Calcul de VO2max</a>
           <a href="#outils">VMA &amp; allures</a>
           <a href="#outils">Allures de course</a>

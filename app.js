@@ -1,7 +1,7 @@
 /* ============================================================================
    TRAIL BOX — Logique des calculateurs
-   7 outils autonomes : allure, pente, GAP (allure ajustée à la pente),
-   temps estimé, prédicteur de temps (Riegel), VO2max, VMA + allures.
+   Outils autonomes : allure, pente, GAP (allure ajustée à la pente),
+   VO2max, VMA + allures, allures de course, analyse GPX.
    Recalcul en direct à chaque saisie (input), formatage en français.
    ========================================================================== */
 
@@ -49,66 +49,6 @@ function calcSlope() {
   deg.textContent = '≈ ' + Math.round(angle) + '°';
 }
 ['s-deniv', 's-dist'].forEach(id => document.getElementById(id).addEventListener('input', calcSlope));
-
-/* ---- TEMPS DE COURSE (fusion : Riegel + km-effort) ---------------------- */
-function fmtHM(totalMin) {
-  const t = Math.round(totalMin);
-  const h = Math.floor(t / 60), m = t % 60;
-  return h > 0 ? (h + ' h ' + String(m).padStart(2, '0')) : (m + ' min');
-}
-
-let timeMode = 'ref';  // 'ref' (Riegel + double km-effort) ou 'pace' (allure connue)
-
-function calcTimeUnified() {
-  const out = document.getElementById('time-out');
-  const sub = document.getElementById('time-sub');
-
-  if (timeMode === 'pace') {
-    const pm = num('t-pm') || 0, ps = num('t-ps') || 0;
-    const deniv = num('t-deniv') || 0, dist = num('t-dist');
-    const paceMin = pm + ps / 60;
-    if (!dist || dist <= 0 || paceMin <= 0) { out.textContent = '—'; sub.textContent = ''; return; }
-    const kmEffort = dist + deniv / 100;
-    out.textContent = '≈ ' + fmtHM(kmEffort * paceMin);
-    sub.textContent = 'soit ' + fr(kmEffort) + ' km-effort';
-    return;
-  }
-
-  // mode 'ref'
-  const d1 = num('r-rdist');
-  const h = num('r-rh') || 0, m = num('r-rm') || 0, s = num('r-rs') || 0;
-  const t1 = h * 3600 + m * 60 + s;
-  const dplusRef = num('r-rdplus') || 0;
-  const d2 = num('r-tdist');
-  const dplus = num('r-tdplus') || 0;
-  if (!d1 || d1 <= 0 || t1 <= 0 || !d2 || d2 <= 0) { out.textContent = '—'; sub.textContent = ''; return; }
-  // Aplatir la référence (km-effort inverse), projeter via Riegel, puis ré-ajouter le D+ cible.
-  // Exposant d'endurance VARIABLE : k croît avec la distance (la fatigue ultra > fatigue route).
-  // Évalué à la moyenne géométrique des 2 distances → symétrique (valable dans les deux sens),
-  // exact (= intégrale de k(d) = 1,06 + b·ln(d/10)), et k = 1,06 retrouvé si b = 0.
-  const b = 0.02;  // sensibilité à la fatigue, figée (calibrée ultra : k ≈ 1,10 à 80 km)
-  const kEff = 1.06 + (b / 2) * Math.log(d1 * d2 / 100);
-  const t1Flat = t1 / (1 + dplusRef / (100 * d1));
-  const t2Flat = t1Flat * Math.pow(d2 / d1, kEff);
-  const tFinal = t2Flat * (1 + dplus / (100 * d2));
-  out.textContent = '≈ ' + fmtHM(tFinal / 60);
-  sub.textContent = 'soit ' + fmtPace(tFinal / d2) + ' /km';
-}
-
-document.querySelectorAll('#time-mode button').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('#time-mode button').forEach(x => x.classList.remove('is-active'));
-    b.classList.add('is-active');
-    timeMode = b.dataset.mode;
-    document.querySelectorAll('.time-inputs').forEach(el => {
-      el.hidden = el.dataset.mode !== timeMode;
-    });
-    calcTimeUnified();
-  });
-});
-['t-pm', 't-ps', 't-deniv', 't-dist',
- 'r-rdist', 'r-rh', 'r-rm', 'r-rs', 'r-rdplus', 'r-tdist', 'r-tdplus']
-  .forEach(id => document.getElementById(id).addEventListener('input', calcTimeUnified));
 
 /* ---- 03 · GAP (allure ajustée à la pente — coût de Minetti) ------------- */
 /* Coût énergétique de la course en J/(kg·m). i = pente en décimal.
@@ -259,7 +199,7 @@ document.getElementById('rc-vma').addEventListener('input', calcCourse);
 document.getElementById('rc-dist').addEventListener('change', calcCourse);
 
 /* ---- Premier calcul au chargement --------------------------------------- */
-calcPace(); calcSlope(); calcGAP(); calcTimeUnified(); calcVO2(); calcVMA(); calcCourse();
+calcPace(); calcSlope(); calcGAP(); calcVO2(); calcVMA(); calcCourse();
 
 
 /* ============================================================================
@@ -290,7 +230,7 @@ const SKELETON_HTML = `
 `;
 
 // Liste blanche des ids d'outils (filtre les ids inconnus, ex. 'riegel' suite à la fusion 04+05).
-const VALID_TOOLS = new Set(['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures', 'course', 'gpx']);
+const VALID_TOOLS = new Set(['pace', 'slope', 'gap', 'vo2', 'vma', 'allures', 'course', 'gpx']);
 
 /* Nettoie une liste de favoris : ids connus, dédupliqués, ordre préservé. */
 function sanitizeFavorites(arr) {
@@ -469,7 +409,7 @@ function renderFavorites() {
 
   /* Renvoie les cartes non favorites dans la grille principale,
      en restaurant l'ordre d'origine (via data-tool) */
-  const originalOrder = ['pace', 'slope', 'gap', 'time', 'vo2', 'vma', 'allures', 'course', 'gpx'];
+  const originalOrder = ['pace', 'slope', 'gap', 'vo2', 'vma', 'allures', 'course', 'gpx'];
   originalOrder
     .filter(id => !favs.includes(id))
     .forEach(id => {

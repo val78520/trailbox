@@ -8,8 +8,8 @@
 
 ## 1. Le projet en bref
 
-- **Quoi** : « la boîte à outils du traileur » — une page web qui regroupe 9 calculateurs
-  (allure, pente, temps de course, GAP, VO2max, VMA, allures de course, profil GPX…).
+- **Quoi** : « la boîte à outils du traileur » — une page web qui regroupe 8 calculateurs
+  (allure, pente, GAP, VO2max, VMA, allures d'entraînement, allures de course, profil GPX…).
 - **Promesse** : on rentre des chiffres, on sort un résultat. **Pas de pub, pas de tuto.**
   Certains outils avancés (ex. analyse de tracé GPX) sont réservés aux utilisateurs connectés.
   L'esprit est léger et rapide — toute contribution doit le rester.
@@ -35,7 +35,7 @@
 
 ```
 .
-├── index.html          # Page unique (nav, héros, 9 outils, footer). lang="fr"
+├── index.html          # Page unique (nav, héros, 8 outils, footer). lang="fr"
 ├── design_system.css   # TOKENS — à charger en 1er. Ne définit aucun composant.
 ├── styles.css          # COMPOSANTS — consomme les tokens. À charger en 2nd.
 ├── app.js              # Toute la logique : calculs + UI. defer, chargé en bas de page.
@@ -136,7 +136,7 @@ Stockage via `localStorage`, **clés versionnées** — ne pas renommer sans mig
 Si tu changes le format d'une clé, incrémente la version (`…v2`) et gère l'ancienne.
 
 ### Calculs — zone sensible
-Les formules sont scientifiques et **ne doivent pas être cassées** : Riegel + km-effort (temps de course),
+Les formules sont scientifiques et **ne doivent pas être cassées** :
 coût de Minetti (GAP), demi-Cooper et zones de VMA, VO2max ≈ 3,5 × VMA. Si tu touches un calcul,
 vérifie le résultat à la main sur un cas connu et conserve les constantes (`VMA_ZONES`, `COURSE_DISTANCES`…).
 
